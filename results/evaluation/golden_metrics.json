@@ -1,0 +1,16 @@
+{
+  "fixture": "scripts/evaluation/test_metrics.py::golden_fixtures (analytic)",
+  "frozen_params": {
+    "data_range": 1.0,
+    "win_size": 7,
+    "K1": 0.01,
+    "K2": 0.03
+  },
+  "numpy": "2.5.2",
+  "values": {
+    "ssim": 0.8156676934478311,
+    "psnr_db": 26.471542225700656,
+    "ssim_self": 1.0,
+    "psnr_self_is_inf": true
+  }
+}
