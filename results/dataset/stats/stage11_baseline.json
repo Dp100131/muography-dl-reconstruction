@@ -1,0 +1,44 @@
+{
+  "n_geometries": 19,
+  "n_views_per_geometry": 6,
+  "fractions": [
+    0.5,
+    0.1,
+    0.05,
+    0.01
+  ],
+  "k_realizations": 20,
+  "total_pairs": 9120,
+  "baseline_no_model": {
+    "0.50": {
+      "n": 2280,
+      "ssim_mean": 0.8771,
+      "ssim_std": 0.0083,
+      "psnr_mean_db": 20.42,
+      "psnr_std_db": 0.08
+    },
+    "0.10": {
+      "n": 2280,
+      "ssim_mean": 0.5319,
+      "ssim_std": 0.0095,
+      "psnr_mean_db": 10.41,
+      "psnr_std_db": 0.13
+    },
+    "0.05": {
+      "n": 2280,
+      "ssim_mean": 0.3737,
+      "ssim_std": 0.0056,
+      "psnr_mean_db": 8.23,
+      "psnr_std_db": 0.13
+    },
+    "0.01": {
+      "n": 2280,
+      "ssim_mean": 0.1025,
+      "ssim_std": 0.0009,
+      "psnr_mean_db": 4.79,
+      "psnr_std_db": 0.14
+    }
+  },
+  "ssim_monotonically_decreasing_with_subsampling": true,
+  "build_minutes": 3.7
+}

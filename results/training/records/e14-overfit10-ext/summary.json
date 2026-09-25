@@ -1,0 +1,45 @@
+{
+  "run_id": "e14-overfit10-ext",
+  "status": "done",
+  "stop_reason": "max_iters",
+  "config_sha8": "0f851d8d",
+  "best_val_ssim": 0.995,
+  "best_epoch": 888,
+  "epochs_run": 1000,
+  "last_epoch": 1000,
+  "global_step": 2000,
+  "overfit_n": 10,
+  "wall_seconds": 3159.4,
+  "git_commit": "unknown",
+  "config": {
+    "run_id": "e14-overfit10-ext",
+    "generator": "unet_p2p_6",
+    "critic": "patch_critic_70",
+    "fraction": 0.05,
+    "input_scaling": "ref_equivalent",
+    "hflip": false,
+    "lambda_gp": 10,
+    "lambda_l1": 100,
+    "lambda_adv": 1,
+    "lr": 0.0001,
+    "betas": [
+      0.0,
+      0.9
+    ],
+    "n_critic": 5,
+    "batch": 8,
+    "epochs": 2000,
+    "seed": 20260805140001,
+    "early_stop": {
+      "metric": "val_ssim",
+      "patience": 25,
+      "min_delta": 0.001
+    },
+    "val_every": 1,
+    "sample_every": 5,
+    "overfit_n": 10,
+    "max_iters": 2000,
+    "device": "cuda",
+    "_comment": "Stage 15 reference configuration C0 at the 5% level. input_scaling is decided by the Stage 13.4 A/B (shared vs ref_equivalent) and must be replaced before the run; seed = 20260805*10^6 + 15*10^4 + 0*10^2 + 0."
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "generated_utc": "2026-09-06T00:45:08+00:00",
+  "stage": "20 (single test pass)",
+  "split": "test",
+  "arms": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I"
+  ],
+  "geometries": [
+    {
+      "geometry_id": "geo-test-01",
+      "split": "test"
+    },
+    {
+      "geometry_id": "geo-test-02",
+      "split": "test"
+    },
+    {
+      "geometry_id": "geo-test-03",
+      "split": "test"
+    },
+    {
+      "geometry_id": "geo-gen-01",
+      "split": "generalization"
+    }
+  ],
+  "resume": {
+    "resumed": false,
+    "reason": "",
+    "kept_geometries": [],
+    "n_partial_cache_files": 0
+  },
+  "k_realizations": 20,
+  "n_sham_per_view": 10,
+  "frozen_fractions": [
+    0.5,
+    0.1,
+    0.05,
+    0.01
+  ],
+  "dense_fractions": [
+    0.01,
+    0.02,
+    0.05,
+    0.1,
+    0.2,
+    0.3,
+    0.5,
+    0.75,
+    0.9
+  ],
+  "frozen_classical": {
+    "0.50": "nlm_log_h0.5",
+    "0.10": "nlm_anscombe_h1.2",
+    "0.05": "nlm_anscombe_h1.2",
+    "0.01": "gaussian_s2.5"
+  },
+  "classical_convention": "corrected",
+  "unet_l1_continuity_runs": [
+    {
+      "run_id": "e19-unetl1-f1-shared",
+      "fraction": 0.01
+    }
+  ],
+  "model_provenance": {
+    "e19-unetl1-f50": {
+      "run_id": "e19-unetl1-f50",
+      "path": "runs/e19-unetl1-f50/checkpoints/best.pt",
+      "sha256": "f0cb0b01d9d9dddaf944c3c6c268cda954c45962f3f5243dc04382d53b579fe6",
+      "bytes": 352389380,
+      "config_sha8": "2b561d97",
+      "best_val_ssim": 0.9014,
+      "manifest": "models/weights-manifest-e19.json",
+      "generator": "unet_p2p_6",
+      "epoch": 19,
+      "checkpoint_config_sha8": "2b561d97",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e19-unetl1-f10": {
+      "run_id": "e19-unetl1-f10",
+      "path": "runs/e19-unetl1-f10/checkpoints/best.pt",
+      "sha256": "fbda1946b25d71643814878cb04a1858c33495c2e0f0bc218a7f74fa1f7f3567",
+      "bytes": 352389380,
+      "config_sha8": "066302f7",
+      "best_val_ssim": 0.7821,
+      "manifest": "models/weights-manifest-e19.json",
+      "generator": "unet_p2p_6",
+      "epoch": 11,
+      "checkpoint_config_sha8": "066302f7",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e19-unetl1-f5": {
+      "run_id": "e19-unetl1-f5",
+      "path": "runs/e19-unetl1-f5/checkpoints/best.pt",
+      "sha256": "b1a18200130a8ba599c7d3fc4429cbe258c3234b7afc4685bd0ec14bbe7d07ee",
+      "bytes": 352389508,
+      "config_sha8": "c14b109d",
+      "best_val_ssim": 0.7775,
+      "manifest": "models/weights-manifest-e19.json",
+      "generator": "unet_p2p_6",
+      "epoch": 1,
+      "checkpoint_config_sha8": "c14b109d",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e19-unetl1-f1": {
+      "run_id": "e19-unetl1-f1",
+      "path": "runs/e19-unetl1-f1/checkpoints/best.pt",
+      "sha256": "5de3658bc3eb20d58eabaa4471f60c2b40271f542b47b7c82f8e46ba52c86006",
+      "bytes": 352389380,
+      "config_sha8": "9e1fec97",
+      "best_val_ssim": 0.7736,
+      "manifest": "models/weights-manifest-e19.json",
+      "generator": "unet_p2p_6",
+      "epoch": 2,
+      "checkpoint_config_sha8": "9e1fec97",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e19-unetl1-f1-shared": {
+      "run_id": "e19-unetl1-f1-shared",
+      "path": "runs/e19-unetl1-f1-shared/checkpoints/best.pt",
+      "sha256": "26b5f1402e13699630657dd811d075f0787cff713141e395772df8e867b5f169",
+      "bytes": 352389444,
+      "config_sha8": "20a0ce76",
+      "best_val_ssim": 0.775,
+      "manifest": "models/weights-manifest-e19.json",
+      "generator": "unet_p2p_6",
+      "epoch": 2,
+      "checkpoint_config_sha8": "20a0ce76",
+      "device": "cuda",
+      "input_scaling": "shared"
+    },
+    "e17-final-f50": {
+      "run_id": "e17-final-f50",
+      "path": "runs/e17-final-f50/checkpoints/best.pt",
+      "sha256": "53f9bf630bfcd0924f00fc8563cc6d55b3a96c573e81f124f8feab9f6d904ef4",
+      "bytes": 279757830,
+      "config_sha8": "8fd5834b",
+      "best_val_ssim": 0.9054,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 7,
+      "checkpoint_config_sha8": "8fd5834b",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e17-final-f10": {
+      "run_id": "e17-final-f10",
+      "path": "runs/e17-final-f10/checkpoints/best.pt",
+      "sha256": "561e3a838b8ee76913f86a39dd9c66f469a56607632fd6118dadb09bc4deb5ac",
+      "bytes": 279757830,
+      "config_sha8": "abb14f33",
+      "best_val_ssim": 0.7997,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 22,
+      "checkpoint_config_sha8": "abb14f33",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e17-final-f5": {
+      "run_id": "e17-final-f5",
+      "path": "runs/e17-final-f5/checkpoints/best.pt",
+      "sha256": "72bef9f9004d6b59ddc3681076073aaee85e21c223f14109d2e051d641fe729c",
+      "bytes": 279757830,
+      "config_sha8": "306ed284",
+      "best_val_ssim": 0.7834,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 51,
+      "checkpoint_config_sha8": "306ed284",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e17-final-f1": {
+      "run_id": "e17-final-f1",
+      "path": "runs/e17-final-f1/checkpoints/best.pt",
+      "sha256": "069510b90120c69b89d6c2fbda03b6b32286ea7197dc16acc585915bb1cb3fb3",
+      "bytes": 279757830,
+      "config_sha8": "e7130079",
+      "best_val_ssim": 0.7695,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 19,
+      "checkpoint_config_sha8": "e7130079",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e17-final-f5-s1": {
+      "run_id": "e17-final-f5-s1",
+      "path": "runs/e17-final-f5-s1/checkpoints/best.pt",
+      "sha256": "398d7f44e81d455ad1b99086e86bbbb89cc89ef991de976a76f335f995521ff1",
+      "bytes": 279757894,
+      "config_sha8": "c29bfa6e",
+      "best_val_ssim": 0.7809,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 63,
+      "checkpoint_config_sha8": "c29bfa6e",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    },
+    "e17-final-f5-s2": {
+      "run_id": "e17-final-f5-s2",
+      "path": "runs/e17-final-f5-s2/checkpoints/best.pt",
+      "sha256": "a296d5a8ebb22c1741ae8e7447517f1ab99fe249c6b46845b7be07755c1ec1e7",
+      "bytes": 279757830,
+      "config_sha8": "9bb01bcb",
+      "best_val_ssim": 0.7836,
+      "manifest": "models/weights-manifest.json",
+      "generator": "unet_dc_5",
+      "epoch": 49,
+      "checkpoint_config_sha8": "9bb01bcb",
+      "device": "cuda",
+      "input_scaling": "ref_equivalent"
+    }
+  },
+  "input_scalings": {
+    "e19-unetl1-f50": "ref_equivalent",
+    "e19-unetl1-f10": "ref_equivalent",
+    "e19-unetl1-f5": "ref_equivalent",
+    "e19-unetl1-f1": "ref_equivalent",
+    "e19-unetl1-f1-shared": "shared",
+    "e17-final-f50": "ref_equivalent",
+    "e17-final-f10": "ref_equivalent",
+    "e17-final-f5": "ref_equivalent",
+    "e17-final-f1": "ref_equivalent",
+    "e17-final-f5-s1": "ref_equivalent",
+    "e17-final-f5-s2": "ref_equivalent"
+  },
+  "seed_derivations": {
+    "thinning_grid": "SeedSequence([20260805e6 + 22e4 + fi*100 + k, geo_index, view])",
+    "sham_masks": "SeedSequence([20260805e6 + 21e4, geo_index, view])"
+  },
+  "row_counts": {
+    "global": 25464,
+    "roi": 37854,
+    "sham": 81840,
+    "texture": 4320,
+    "octile": 143862
+  },
+  "outputs": {
+    "metrics_csv": "runs/e20-cache/metrics.csv",
+    "octiles_csv": "runs/e20-cache/octiles.csv",
+    "cache_manifest": "runs/e20-cache/cache-manifest.json"
+  },
+  "shards_read": {
+    "geo-gen-01.npz": "388b65167e2d0a3c1b23fe569a922e1ae1398a78dcf3444dc916d4d6e18c00ce",
+    "geo-test-01.npz": "0db8d0926696c0e71710857db83dad040dd9ac88e75835004a015e4dad43a98b",
+    "geo-test-02.npz": "b3d2f603b22d5e2d02c67ee290930e22bd70dc7022ddc50f31b41acd4a1d5175",
+    "geo-test-03.npz": "d6320712f146c226ac3b05f2d9d095949a8841e4902ca4d75a3fd2ebc8a9782a"
+  },
+  "cache_written": {
+    "geo-gen-01/arm_A.npz": "65d67bc41270686714ef1aa40d48270c05dd589da64183282412a7d78b61e5f4",
+    "geo-gen-01/arm_D.npz": "7ae0f0b543e036dc4f8d0b8b466429dc97d1da70ecf192cbec6fb80f8ce7f312",
+    "geo-gen-01/arm_E.npz": "51522f82a24918cac2ccc43e8f2a887f8c65158164180f63d0bf2f40c30a8f92",
+    "geo-gen-01/arm_F.npz": "820b29aefc64dd886174ced030527f4efeb346051ad4f79315eae136ae90213a",
+    "geo-gen-01/arm_G.npz": "d472e129ebf944f504b5bc2f699ab90bb4813a42dbc31cb4b1edca1bc5d198e9",
+    "geo-gen-01/arm_H.npz": "b2b5f7c8386fa25192afa5ccca7fbd6fcbbee8af5b9b90f09877e6f060bd36f3",
+    "geo-gen-01/masks.npz": "40e6d3f3834336b1bf00806bcb5995f0bae59ee81cb445fdcfe4680a48ca063e",
+    "geo-test-01/arm_A.npz": "f67ad5f6a5fb830ac8ef867d63b3aa2807679df54e6a2f8f99ee1a907e70f8e5",
+    "geo-test-01/arm_D.npz": "3e27f20c92fcb0327cc759e15361862ce410cfe38f8a7f1c52c68d174b3db970",
+    "geo-test-01/arm_E.npz": "b906f2763b746ee3dae0603eb3f332686d281efa613e97a1d132c5c023aeae3a",
+    "geo-test-01/arm_F.npz": "4398548a499f94bc56163524e82f4a5eb0c98c1a04bbcd794fe27fd6a111d073",
+    "geo-test-01/arm_G.npz": "36b519b3c15d1e9b985bcf4d5e62fde19f7fb980f9697a7e54c50039bce7575c",
+    "geo-test-01/arm_H.npz": "07b00a947e36f8f38db3125fc6d22c04b85e686a9a4ea12b477fbd0c1a6af8f2",
+    "geo-test-01/masks.npz": "8334ed06d529eac9c29d9d763d0b7f4899b3fe6eac0a2135da4ebfc17cd90424",
+    "geo-test-02/arm_A.npz": "922f3f6ee377bf0473d0674e5e73f6b14db97933d3316092d0504191a5491bda",
+    "geo-test-02/arm_D.npz": "a03750dbaeeaedf0dd3906b2fc97b13cf8220b85cdc2dee8ba28526f1b1ee94d",
+    "geo-test-02/arm_E.npz": "33e78daf728ce28ff7d89d37a148d3b7bcc05e01471de28b2b897151108f1cdd",
+    "geo-test-02/arm_F.npz": "a95c454176437d294cc190ec790a89d3bd73ca809a40ab235f3378707c6ecf0e",
+    "geo-test-02/arm_G.npz": "55806688892e4d39b35b837943a2d1772a27682a60b1f54474e660bdcd905e29",
+    "geo-test-02/arm_H.npz": "d0a7f1cc3fcf7784756b692fa236b341cd1b08b7627375efa90757921f1e4891",
+    "geo-test-02/masks.npz": "63ab3dd2c196af870669964176a3edf2dd161ff27e771fb72840e9a4b10ae21c",
+    "geo-test-03/arm_A.npz": "54d53aaa32607ab8be5512326ecfd904db68333808bd8372a5f6e4bff7e2d2c3",
+    "geo-test-03/arm_D.npz": "5ea78db9fe24b1271cfb6227a6eada915db5a94a9b27e117a89415467cc36b40",
+    "geo-test-03/arm_E.npz": "77da0acd812b7cac77fde7ae9fd470c49281c0e66eb72a094a146111bafc7e96",
+    "geo-test-03/arm_F.npz": "dbd5357ca1404cdacb6eecd89f6b3a32283e54e14be153fbfed0c0f16d69b318",
+    "geo-test-03/arm_G.npz": "cde4ffc22b71cbb089d1bbf2e024eca7a3e3ed47efedede54bc54a213c9bc6d6",
+    "geo-test-03/arm_H.npz": "e1357704b8038e1d1b23b63da60681c6749f979a223982d9e90273ed7c4314e8",
+    "geo-test-03/masks.npz": "29775813e4f091fd246c6fe93cf287e55b4a2007e9c3765b70d696e834f71402",
+    "metrics.csv": "28eef9da36de8881a2d33b128a960c69ef7df1e0b6de478330e474ed8dbe1049",
+    "octiles.csv": "a257b2581e0d9d525983e36e13846ac5c1e1600a5ea89e07a8ce5b140c13a0b2"
+  },
+  "wall_seconds": 1533.4,
+  "host": "felix.sc3.uis.edu.co",
+  "slurm_job_id": "29819",
+  "git_commit": "unknown"
+}

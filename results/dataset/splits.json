@@ -1,0 +1,67 @@
+{
+  "dataset_version": "v1.0",
+  "engine": "geant4-11.4.2 (SC3 campaign, 114/114 views, table-driven generator, binomial thinning)",
+  "frozen_utc": "2026-08-31T21:46:27+00:00",
+  "split_policy": "by geometry (all realizations of a geometry share its split)",
+  "splits": {
+    "train": [
+      "geo-train-01",
+      "geo-train-02",
+      "geo-train-03",
+      "geo-train-04",
+      "geo-train-05",
+      "geo-train-06",
+      "geo-train-07",
+      "geo-train-08",
+      "geo-train-09",
+      "geo-train-10",
+      "geo-train-11",
+      "geo-train-12"
+    ],
+    "val": [
+      "geo-val-01",
+      "geo-val-02",
+      "geo-val-03"
+    ],
+    "test": [
+      "geo-test-01",
+      "geo-test-02",
+      "geo-test-03"
+    ],
+    "generalization": [
+      "geo-gen-01"
+    ]
+  },
+  "pairs_per_split": {
+    "train": 5760,
+    "val": 1440,
+    "test": 1440,
+    "generalization": 480
+  },
+  "train_pairs_criterion_ge_5000": true,
+  "shard_sha256": {
+    "geo-gen-01": "388b65167e2d0a3c1b23fe569a922e1ae1398a78dcf3444dc916d4d6e18c00ce",
+    "geo-test-01": "0db8d0926696c0e71710857db83dad040dd9ac88e75835004a015e4dad43a98b",
+    "geo-test-02": "b3d2f603b22d5e2d02c67ee290930e22bd70dc7022ddc50f31b41acd4a1d5175",
+    "geo-test-03": "d6320712f146c226ac3b05f2d9d095949a8841e4902ca4d75a3fd2ebc8a9782a",
+    "geo-train-01": "3769b6da986fa66f73cf0337ec1c70aff92e13b5dbbd203f99084f1b304a3a25",
+    "geo-train-02": "e58ed375c282fd04bbff9fd7ffdb01dd14ee4b9315dfee510ee84400dafa2d7c",
+    "geo-train-03": "b2671e092662a2cd35c608d5ee77fde062315e69bd460adb8e0d7d3c668df307",
+    "geo-train-04": "e390d232493670e978f166f5e61ba53c47e924a6c2adee8ebc7d81e14f0b8b40",
+    "geo-train-05": "7c9b524fff507bd58091e55fb5f3dcd08015223c231d11e74e9d1fdc51f6b60a",
+    "geo-train-06": "d74c5b04be5c453b7b8d5dac24de7775ada4c695b5a1598b2776f661a7bde7d3",
+    "geo-train-07": "1e8f83226788cee61b075e3313b15c0556e40112f757b31545f6c04310c450dd",
+    "geo-train-08": "ffbee8bb2ccd5fb4eb85d1d08d6e0da8055f71e901d348507e9e2c7d4930ee39",
+    "geo-train-09": "2382ccd45295280840b50350d48575e2cbe12d0bcc61ca34f9654a0697cb031e",
+    "geo-train-10": "1dbf1304cacc862c7e36883e7d136c805f6f9ca49fae9af8b955fc9270e4451a",
+    "geo-train-11": "9f379c1746a1c9d997eb48aaf1090d52851ab6750ba7647fd4f7cba89d6f9540",
+    "geo-train-12": "12d4e9cead0863dea36a28edbc11a150c0a0c94e271a445868047a8e78e0b791",
+    "geo-val-01": "0588b8fafcb206721e09dd3d48ea3f01f2bd16bf791aaf8a23d6c94db04997fd",
+    "geo-val-02": "6cf53ab2002ddf4993f1a08f76b98896a892d7ba1c1c9ca479c0a6773823119e",
+    "geo-val-03": "c43ad84e89603c66bc2140fc1541bcbf2720c90ea8f608ef1a019aa4858d0af5"
+  },
+  "pending_for_oe1_close": [
+    "firma de cierre OE1 por director y codirector (PA-4)",
+    "respaldo externo real (disco externo + OneDrive institucional)"
+  ]
+}

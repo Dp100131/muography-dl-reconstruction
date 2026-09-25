@@ -1,0 +1,45 @@
+{
+  "run_id": "e13-ab-corrected",
+  "status": "done",
+  "stop_reason": "early_stop",
+  "config_sha8": "c3d5b325",
+  "best_val_ssim": 0.7774,
+  "best_epoch": 1,
+  "epochs_run": 26,
+  "last_epoch": 26,
+  "global_step": 4680,
+  "overfit_n": null,
+  "wall_seconds": 7222.3,
+  "git_commit": "unknown",
+  "config": {
+    "run_id": "e13-ab-corrected",
+    "generator": "unet_p2p_6",
+    "critic": "patch_critic_70",
+    "fraction": 0.05,
+    "input_scaling": "ref_equivalent",
+    "hflip": true,
+    "lambda_gp": 10,
+    "lambda_l1": 100,
+    "lambda_adv": 1,
+    "lr": 0.0001,
+    "betas": [
+      0.0,
+      0.9
+    ],
+    "n_critic": 5,
+    "batch": 8,
+    "epochs": 60,
+    "seed": 20260805130401,
+    "early_stop": {
+      "metric": "val_ssim",
+      "patience": 25,
+      "min_delta": 0.001
+    },
+    "val_every": 1,
+    "sample_every": 5,
+    "overfit_n": null,
+    "max_iters": null,
+    "device": null,
+    "_comment": "Stage 15 reference configuration C0 at the 5% level. input_scaling is decided by the Stage 13.4 A/B (shared vs ref_equivalent) and must be replaced before the run; seed = 20260805*10^6 + 15*10^4 + 0*10^2 + 0."
+  }
+}

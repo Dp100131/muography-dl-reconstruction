@@ -1,0 +1,1096 @@
+{
+  "stage": "13.1+13.2",
+  "generated_utc": "2026-09-01T01:05:56+00:00",
+  "split": "val",
+  "geometry_ids": [
+    "geo-val-01",
+    "geo-val-02",
+    "geo-val-03"
+  ],
+  "views": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "k_realizations_used": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "n_per_cell": 90,
+  "quick_mode": false,
+  "conventions": {
+    "raw": "log1p(denoise(low)) / log1p(ref.max())",
+    "corrected": "log1p(denoise(low)/f) / log1p(ref.max())"
+  },
+  "nlm_settings": {
+    "patch_size": 5,
+    "patch_distance": 6,
+    "fast_mode": true,
+    "h_multipliers_of_estimated_sigma": [
+      0.5,
+      0.8,
+      1.2
+    ]
+  },
+  "bm3d_available": false,
+  "methods": {
+    "identity": {
+      "method": "identity",
+      "params": {},
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8718,
+          "ssim_std": 0.006,
+          "psnr_mean_db": 20.47,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.5261,
+          "ssim_std": 0.0069,
+          "psnr_mean_db": 10.49,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.37,
+          "ssim_std": 0.0041,
+          "psnr_mean_db": 8.31,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.1022,
+          "ssim_std": 0.0011,
+          "psnr_mean_db": 4.87,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.891,
+          "ssim_std": 0.0053,
+          "psnr_mean_db": 30.2,
+          "psnr_std_db": 0.24
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.5965,
+          "ssim_std": 0.0075,
+          "psnr_mean_db": 22.55,
+          "psnr_std_db": 0.28
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.4464,
+          "ssim_std": 0.005,
+          "psnr_mean_db": 20.59,
+          "psnr_std_db": 0.27
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.1271,
+          "ssim_std": 0.0021,
+          "psnr_mean_db": 15.23,
+          "psnr_std_db": 0.15
+        }
+      }
+    },
+    "gaussian_s0.8": {
+      "method": "gaussian",
+      "params": {
+        "sigma": 0.8
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8293,
+          "ssim_std": 0.0099,
+          "psnr_mean_db": 20.56,
+          "psnr_std_db": 0.07
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6561,
+          "ssim_std": 0.0124,
+          "psnr_mean_db": 10.58,
+          "psnr_std_db": 0.1
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5594,
+          "ssim_std": 0.0105,
+          "psnr_mean_db": 8.41,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.293,
+          "ssim_std": 0.0042,
+          "psnr_mean_db": 5.03,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8532,
+          "ssim_std": 0.0089,
+          "psnr_mean_db": 31.07,
+          "psnr_std_db": 0.22
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.773,
+          "ssim_std": 0.0127,
+          "psnr_mean_db": 27.94,
+          "psnr_std_db": 0.23
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7176,
+          "ssim_std": 0.0129,
+          "psnr_mean_db": 26.25,
+          "psnr_std_db": 0.23
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.5164,
+          "ssim_std": 0.0089,
+          "psnr_mean_db": 22.52,
+          "psnr_std_db": 0.28
+        }
+      }
+    },
+    "gaussian_s1.5": {
+      "method": "gaussian",
+      "params": {
+        "sigma": 1.5
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7916,
+          "ssim_std": 0.012,
+          "psnr_mean_db": 20.52,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6651,
+          "ssim_std": 0.0132,
+          "psnr_mean_db": 10.6,
+          "psnr_std_db": 0.1
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5856,
+          "ssim_std": 0.0119,
+          "psnr_mean_db": 8.42,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3524,
+          "ssim_std": 0.006,
+          "psnr_mean_db": 5.05,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8057,
+          "ssim_std": 0.0117,
+          "psnr_mean_db": 30.14,
+          "psnr_std_db": 0.2
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7843,
+          "ssim_std": 0.0133,
+          "psnr_mean_db": 29.11,
+          "psnr_std_db": 0.21
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7648,
+          "ssim_std": 0.014,
+          "psnr_mean_db": 28.21,
+          "psnr_std_db": 0.22
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.681,
+          "ssim_std": 0.0141,
+          "psnr_mean_db": 25.15,
+          "psnr_std_db": 0.29
+        }
+      }
+    },
+    "gaussian_s2.5": {
+      "method": "gaussian",
+      "params": {
+        "sigma": 2.5
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7804,
+          "ssim_std": 0.0125,
+          "psnr_mean_db": 20.54,
+          "psnr_std_db": 0.07
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6668,
+          "ssim_std": 0.0134,
+          "psnr_mean_db": 10.61,
+          "psnr_std_db": 0.1
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5914,
+          "ssim_std": 0.0122,
+          "psnr_mean_db": 8.43,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3683,
+          "ssim_std": 0.0065,
+          "psnr_mean_db": 5.05,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7901,
+          "ssim_std": 0.0125,
+          "psnr_mean_db": 29.59,
+          "psnr_std_db": 0.16
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.784,
+          "ssim_std": 0.0132,
+          "psnr_mean_db": 29.24,
+          "psnr_std_db": 0.17
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7774,
+          "ssim_std": 0.0137,
+          "psnr_mean_db": 28.86,
+          "psnr_std_db": 0.19
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.7438,
+          "ssim_std": 0.0152,
+          "psnr_mean_db": 26.96,
+          "psnr_std_db": 0.26
+        }
+      }
+    },
+    "median_r1": {
+      "method": "median",
+      "params": {
+        "radius": 1
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7671,
+          "ssim_std": 0.0145,
+          "psnr_mean_db": 20.25,
+          "psnr_std_db": 0.05
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.5955,
+          "ssim_std": 0.0123,
+          "psnr_mean_db": 10.5,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.4883,
+          "ssim_std": 0.0089,
+          "psnr_mean_db": 8.34,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.2049,
+          "ssim_std": 0.002,
+          "psnr_mean_db": 4.94,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7805,
+          "ssim_std": 0.0144,
+          "psnr_mean_db": 28.37,
+          "psnr_std_db": 0.21
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6629,
+          "ssim_std": 0.0144,
+          "psnr_mean_db": 23.25,
+          "psnr_std_db": 0.29
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5884,
+          "ssim_std": 0.0119,
+          "psnr_mean_db": 21.36,
+          "psnr_std_db": 0.32
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3103,
+          "ssim_std": 0.0033,
+          "psnr_mean_db": 17.28,
+          "psnr_std_db": 0.17
+        }
+      }
+    },
+    "median_r2": {
+      "method": "median",
+      "params": {
+        "radius": 2
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7549,
+          "ssim_std": 0.0154,
+          "psnr_mean_db": 20.24,
+          "psnr_std_db": 0.05
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6271,
+          "ssim_std": 0.0137,
+          "psnr_mean_db": 10.5,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5401,
+          "ssim_std": 0.0111,
+          "psnr_mean_db": 8.34,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.2755,
+          "ssim_std": 0.0035,
+          "psnr_mean_db": 4.96,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7652,
+          "ssim_std": 0.0155,
+          "psnr_mean_db": 28.4,
+          "psnr_std_db": 0.21
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7017,
+          "ssim_std": 0.0159,
+          "psnr_mean_db": 23.5,
+          "psnr_std_db": 0.28
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.659,
+          "ssim_std": 0.0149,
+          "psnr_mean_db": 21.54,
+          "psnr_std_db": 0.34
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.4565,
+          "ssim_std": 0.0067,
+          "psnr_mean_db": 17.8,
+          "psnr_std_db": 0.25
+        }
+      }
+    },
+    "median_r3": {
+      "method": "median",
+      "params": {
+        "radius": 3
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7514,
+          "ssim_std": 0.0153,
+          "psnr_mean_db": 20.23,
+          "psnr_std_db": 0.05
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.64,
+          "ssim_std": 0.0143,
+          "psnr_mean_db": 10.5,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5624,
+          "ssim_std": 0.0122,
+          "psnr_mean_db": 8.35,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3155,
+          "ssim_std": 0.0047,
+          "psnr_mean_db": 4.96,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7607,
+          "ssim_std": 0.0153,
+          "psnr_mean_db": 28.43,
+          "psnr_std_db": 0.2
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7187,
+          "ssim_std": 0.0165,
+          "psnr_mean_db": 23.6,
+          "psnr_std_db": 0.28
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.6909,
+          "ssim_std": 0.0163,
+          "psnr_mean_db": 21.62,
+          "psnr_std_db": 0.34
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.5512,
+          "ssim_std": 0.0105,
+          "psnr_mean_db": 17.99,
+          "psnr_std_db": 0.28
+        }
+      }
+    },
+    "nlm_log_h0.5": {
+      "method": "nlm_log",
+      "params": {
+        "h_mult": 0.5
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8722,
+          "ssim_std": 0.0065,
+          "psnr_mean_db": 20.49,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6463,
+          "ssim_std": 0.0121,
+          "psnr_mean_db": 10.51,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5575,
+          "ssim_std": 0.0094,
+          "psnr_mean_db": 8.34,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3176,
+          "ssim_std": 0.0062,
+          "psnr_mean_db": 4.93,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8914,
+          "ssim_std": 0.0057,
+          "psnr_mean_db": 30.22,
+          "psnr_std_db": 0.25
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7499,
+          "ssim_std": 0.012,
+          "psnr_mean_db": 23.3,
+          "psnr_std_db": 0.31
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7059,
+          "ssim_std": 0.0102,
+          "psnr_mean_db": 22.45,
+          "psnr_std_db": 0.32
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.6187,
+          "ssim_std": 0.0129,
+          "psnr_mean_db": 25.9,
+          "psnr_std_db": 0.24
+        }
+      }
+    },
+    "nlm_log_h0.8": {
+      "method": "nlm_log",
+      "params": {
+        "h_mult": 0.8
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8682,
+          "ssim_std": 0.0075,
+          "psnr_mean_db": 20.49,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6522,
+          "ssim_std": 0.0135,
+          "psnr_mean_db": 10.51,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5712,
+          "ssim_std": 0.0113,
+          "psnr_mean_db": 8.34,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3434,
+          "ssim_std": 0.0059,
+          "psnr_mean_db": 4.92,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8898,
+          "ssim_std": 0.006,
+          "psnr_mean_db": 30.25,
+          "psnr_std_db": 0.24
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7616,
+          "ssim_std": 0.0137,
+          "psnr_mean_db": 23.9,
+          "psnr_std_db": 0.32
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7331,
+          "ssim_std": 0.0126,
+          "psnr_mean_db": 24.23,
+          "psnr_std_db": 0.32
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.7019,
+          "ssim_std": 0.0128,
+          "psnr_mean_db": 27.15,
+          "psnr_std_db": 0.21
+        }
+      }
+    },
+    "nlm_log_h1.2": {
+      "method": "nlm_log",
+      "params": {
+        "h_mult": 1.2
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8612,
+          "ssim_std": 0.0088,
+          "psnr_mean_db": 20.5,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6548,
+          "ssim_std": 0.0142,
+          "psnr_mean_db": 10.52,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5797,
+          "ssim_std": 0.0123,
+          "psnr_mean_db": 8.35,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3523,
+          "ssim_std": 0.0059,
+          "psnr_mean_db": 4.92,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8863,
+          "ssim_std": 0.0065,
+          "psnr_mean_db": 30.3,
+          "psnr_std_db": 0.24
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7721,
+          "ssim_std": 0.0142,
+          "psnr_mean_db": 25.83,
+          "psnr_std_db": 0.32
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7635,
+          "ssim_std": 0.0137,
+          "psnr_mean_db": 27.52,
+          "psnr_std_db": 0.27
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.7416,
+          "ssim_std": 0.0141,
+          "psnr_mean_db": 27.54,
+          "psnr_std_db": 0.2
+        }
+      }
+    },
+    "nlm_anscombe_h0.5": {
+      "method": "nlm_anscombe",
+      "params": {
+        "h_mult": 0.5
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.799,
+          "ssim_std": 0.0115,
+          "psnr_mean_db": 20.39,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6424,
+          "ssim_std": 0.0175,
+          "psnr_mean_db": 10.53,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5272,
+          "ssim_std": 0.0223,
+          "psnr_mean_db": 8.36,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.1956,
+          "ssim_std": 0.0238,
+          "psnr_mean_db": 4.94,
+          "psnr_std_db": 0.1
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8173,
+          "ssim_std": 0.0107,
+          "psnr_mean_db": 30.68,
+          "psnr_std_db": 0.2
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.762,
+          "ssim_std": 0.0178,
+          "psnr_mean_db": 29.23,
+          "psnr_std_db": 0.3
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.695,
+          "ssim_std": 0.0272,
+          "psnr_mean_db": 28.28,
+          "psnr_std_db": 0.41
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3634,
+          "ssim_std": 0.0462,
+          "psnr_mean_db": 24.01,
+          "psnr_std_db": 0.91
+        }
+      }
+    },
+    "nlm_anscombe_h0.8": {
+      "method": "nlm_anscombe",
+      "params": {
+        "h_mult": 0.8
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7899,
+          "ssim_std": 0.0121,
+          "psnr_mean_db": 20.38,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6595,
+          "ssim_std": 0.0145,
+          "psnr_mean_db": 10.54,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5729,
+          "ssim_std": 0.0151,
+          "psnr_mean_db": 8.37,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.2933,
+          "ssim_std": 0.0204,
+          "psnr_mean_db": 4.96,
+          "psnr_std_db": 0.1
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.8067,
+          "ssim_std": 0.0115,
+          "psnr_mean_db": 30.48,
+          "psnr_std_db": 0.2
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7842,
+          "ssim_std": 0.0137,
+          "psnr_mean_db": 29.63,
+          "psnr_std_db": 0.22
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7604,
+          "ssim_std": 0.0171,
+          "psnr_mean_db": 29.08,
+          "psnr_std_db": 0.27
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.577,
+          "ssim_std": 0.0452,
+          "psnr_mean_db": 26.8,
+          "psnr_std_db": 0.46
+        }
+      }
+    },
+    "nlm_anscombe_h1.2": {
+      "method": "nlm_anscombe",
+      "params": {
+        "h_mult": 1.2
+      },
+      "raw": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7826,
+          "ssim_std": 0.0126,
+          "psnr_mean_db": 20.37,
+          "psnr_std_db": 0.06
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.6614,
+          "ssim_std": 0.0138,
+          "psnr_mean_db": 10.55,
+          "psnr_std_db": 0.09
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.5842,
+          "ssim_std": 0.0129,
+          "psnr_mean_db": 8.38,
+          "psnr_std_db": 0.1
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.3448,
+          "ssim_std": 0.0095,
+          "psnr_mean_db": 4.97,
+          "psnr_std_db": 0.11
+        }
+      },
+      "corrected": {
+        "0.50": {
+          "n": 90,
+          "ssim_mean": 0.7982,
+          "ssim_std": 0.0121,
+          "psnr_mean_db": 30.31,
+          "psnr_std_db": 0.2
+        },
+        "0.10": {
+          "n": 90,
+          "ssim_mean": 0.7869,
+          "ssim_std": 0.0129,
+          "psnr_mean_db": 29.71,
+          "psnr_std_db": 0.2
+        },
+        "0.05": {
+          "n": 90,
+          "ssim_mean": 0.7777,
+          "ssim_std": 0.014,
+          "psnr_mean_db": 29.33,
+          "psnr_std_db": 0.24
+        },
+        "0.01": {
+          "n": 90,
+          "ssim_mean": 0.7092,
+          "ssim_std": 0.0235,
+          "psnr_mean_db": 27.68,
+          "psnr_std_db": 0.27
+        }
+      }
+    }
+  },
+  "equivalence_grid": {
+    "0.50": {
+      "source": "shard",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.8718,
+        "ssim_std": 0.006,
+        "psnr_mean_db": 20.47,
+        "psnr_std_db": 0.06
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.891,
+        "ssim_std": 0.0053,
+        "psnr_mean_db": 30.2,
+        "psnr_std_db": 0.24
+      }
+    },
+    "0.10": {
+      "source": "shard",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.5261,
+        "ssim_std": 0.0069,
+        "psnr_mean_db": 10.49,
+        "psnr_std_db": 0.09
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.5965,
+        "ssim_std": 0.0075,
+        "psnr_mean_db": 22.55,
+        "psnr_std_db": 0.28
+      }
+    },
+    "0.05": {
+      "source": "shard",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.37,
+        "ssim_std": 0.0041,
+        "psnr_mean_db": 8.31,
+        "psnr_std_db": 0.1
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.4464,
+        "ssim_std": 0.005,
+        "psnr_mean_db": 20.59,
+        "psnr_std_db": 0.27
+      }
+    },
+    "0.01": {
+      "source": "shard",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.1022,
+        "ssim_std": 0.0011,
+        "psnr_mean_db": 4.87,
+        "psnr_std_db": 0.11
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.1271,
+        "ssim_std": 0.0021,
+        "psnr_mean_db": 15.23,
+        "psnr_std_db": 0.15
+      }
+    },
+    "0.75": {
+      "source": "on-the-fly",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.9519,
+        "ssim_std": 0.0027,
+        "psnr_mean_db": 27.61,
+        "psnr_std_db": 0.04
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.9561,
+        "ssim_std": 0.0024,
+        "psnr_mean_db": 34.75,
+        "psnr_std_db": 0.24
+      }
+    },
+    "0.30": {
+      "source": "on-the-fly",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.7643,
+        "ssim_std": 0.0087,
+        "psnr_mean_db": 15.89,
+        "psnr_std_db": 0.08
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.8042,
+        "ssim_std": 0.0078,
+        "psnr_mean_db": 26.92,
+        "psnr_std_db": 0.25
+      }
+    },
+    "0.20": {
+      "source": "on-the-fly",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.6785,
+        "ssim_std": 0.009,
+        "psnr_mean_db": 13.47,
+        "psnr_std_db": 0.08
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.7321,
+        "ssim_std": 0.0086,
+        "psnr_mean_db": 25.03,
+        "psnr_std_db": 0.26
+      }
+    },
+    "0.02": {
+      "source": "on-the-fly",
+      "raw": {
+        "n": 90,
+        "ssim_mean": 0.1916,
+        "ssim_std": 0.0013,
+        "psnr_mean_db": 6.14,
+        "psnr_std_db": 0.11
+      },
+      "corrected": {
+        "n": 90,
+        "ssim_mean": 0.2499,
+        "ssim_std": 0.0019,
+        "psnr_mean_db": 18.03,
+        "psnr_std_db": 0.16
+      }
+    }
+  },
+  "equivalence_seed_derivation": "SeedSequence([20260805e6 + 13e4 + (90+i)*100 + k, geo_index, view])",
+  "scale_oracle_sensitivity": {
+    "0.50": {
+      "n": 90,
+      "ssim_oracle_scale": 0.891,
+      "ssim_estimator_scale": 0.8914,
+      "delta_estimator_minus_oracle": 0.0004
+    },
+    "0.10": {
+      "n": 90,
+      "ssim_oracle_scale": 0.5965,
+      "ssim_estimator_scale": 0.6049,
+      "delta_estimator_minus_oracle": 0.0084
+    },
+    "0.05": {
+      "n": 90,
+      "ssim_oracle_scale": 0.4464,
+      "ssim_estimator_scale": 0.4627,
+      "delta_estimator_minus_oracle": 0.0163
+    },
+    "0.01": {
+      "n": 90,
+      "ssim_oracle_scale": 0.1271,
+      "ssim_estimator_scale": 0.148,
+      "delta_estimator_minus_oracle": 0.0209
+    },
+    "0.75": {
+      "n": 90,
+      "ssim_oracle_scale": 0.9561,
+      "ssim_estimator_scale": 0.9562,
+      "delta_estimator_minus_oracle": 0.0001
+    },
+    "0.30": {
+      "n": 90,
+      "ssim_oracle_scale": 0.8042,
+      "ssim_estimator_scale": 0.8058,
+      "delta_estimator_minus_oracle": 0.0016
+    },
+    "0.20": {
+      "n": 90,
+      "ssim_oracle_scale": 0.7321,
+      "ssim_estimator_scale": 0.7354,
+      "delta_estimator_minus_oracle": 0.0033
+    },
+    "0.02": {
+      "n": 90,
+      "ssim_oracle_scale": 0.2499,
+      "ssim_estimator_scale": 0.2734,
+      "delta_estimator_minus_oracle": 0.0235
+    }
+  },
+  "self_check": {
+    "identity_ssim_monotone_in_fraction": true,
+    "corrected_ge_raw_for_f_le_0.10": true,
+    "best_classical_ssim_at_0.05": 0.7777,
+    "best_classical_method_at_0.05": "nlm_anscombe_h1.2"
+  },
+  "runtime_minutes": 2.24
+}

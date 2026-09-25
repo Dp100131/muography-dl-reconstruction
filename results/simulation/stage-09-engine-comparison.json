@@ -1,0 +1,15 @@
+{
+ "geant4_hist": "data/campaign-geant4/pilot/geo-train-01_view0_hist.csv",
+ "surrogate_npz": "data/campaign/geo-train-01/geo-train-01_view0.npz",
+ "total_counts_geant4": 26693501,
+ "total_counts_surrogate": 34541000,
+ "total_ratio_g4_over_surrogate": 0.7728,
+ "open_sky_ratio": 0.6788,
+ "ssim_log_normalized": 0.7175,
+ "silhouette_edge_width_deg_geant4": 16.235,
+ "silhouette_edge_width_deg_surrogate": 19.412,
+ "interpretation": {
+  "open_sky_ratio": "≈1 esperado (misma normalización de protocolo); desviación = espectro EcoMug vs Guan + decaimiento en vuelo",
+  "edge_width": "ensanchamiento Geant4 = dispersión múltiple + straggling (física ausente en el surrogate)"
+ }
+}

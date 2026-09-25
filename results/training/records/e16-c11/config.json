@@ -1,0 +1,44 @@
+{
+  "run_id": "e16-c11",
+  "out_root": "runs",
+  "config": {
+    "run_id": "e16-c11",
+    "generator": "unet_p2p_6",
+    "critic": "patch_critic_70",
+    "fraction": 0.05,
+    "input_scaling": "ref_equivalent",
+    "hflip": true,
+    "lambda_gp": 10,
+    "lambda_l1": 100,
+    "lambda_adv": 1,
+    "lr": 0.0001,
+    "betas": [
+      0.0,
+      0.9
+    ],
+    "n_critic": 5,
+    "batch": 8,
+    "epochs": 80,
+    "seed": 20260805161100,
+    "early_stop": {
+      "metric": "val_ssim",
+      "patience": 25,
+      "min_delta": 0.001
+    },
+    "val_every": 1,
+    "sample_every": 5,
+    "overfit_n": null,
+    "max_iters": null,
+    "device": "cuda",
+    "rethin": true
+  },
+  "config_sha8": "a8c10b51",
+  "device": "cuda",
+  "git_commit": "unknown",
+  "generator_params": 29362817,
+  "critic_params": 2762817,
+  "train_pairs": 1440,
+  "val_pairs": 360,
+  "iterations_per_epoch": 180,
+  "torch": "2.6.0+cu118"
+}

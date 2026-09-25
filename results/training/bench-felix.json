@@ -1,0 +1,238 @@
+{
+  "generated_utc": "2026-09-01T01:05:14+00:00",
+  "device": "cuda",
+  "device_name": "NVIDIA GeForce GTX TITAN X",
+  "torch": "2.6.0+cu118",
+  "cuda": "11.8",
+  "capability": [
+    5,
+    2
+  ],
+  "image_size": 256,
+  "n_critic": 5,
+  "warmup_iterations": 3,
+  "timed_iterations": 10,
+  "precision": "fp32",
+  "results": [
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_70",
+      "batch": 2,
+      "seconds_per_iteration": 0.5546,
+      "images_per_second": 3.61,
+      "peak_vram_mib": 669.8,
+      "generator_params": 29362817,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_70",
+      "batch": 4,
+      "seconds_per_iteration": 1.0903,
+      "images_per_second": 3.67,
+      "peak_vram_mib": 1746.2,
+      "generator_params": 29362817,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_70",
+      "batch": 8,
+      "seconds_per_iteration": 1.9281,
+      "images_per_second": 4.15,
+      "peak_vram_mib": 1904.3,
+      "generator_params": 29362817,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_70",
+      "batch": 16,
+      "seconds_per_iteration": 3.5135,
+      "images_per_second": 4.55,
+      "peak_vram_mib": 2601.0,
+      "generator_params": 29362817,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_142",
+      "batch": 2,
+      "seconds_per_iteration": 0.6197,
+      "images_per_second": 3.23,
+      "peak_vram_mib": 734.6,
+      "generator_params": 29362817,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_142",
+      "batch": 4,
+      "seconds_per_iteration": 1.0165,
+      "images_per_second": 3.93,
+      "peak_vram_mib": 1786.7,
+      "generator_params": 29362817,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_142",
+      "batch": 8,
+      "seconds_per_iteration": 1.77,
+      "images_per_second": 4.52,
+      "peak_vram_mib": 1912.8,
+      "generator_params": 29362817,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": "patch_critic_142",
+      "batch": 16,
+      "seconds_per_iteration": 3.3398,
+      "images_per_second": 4.79,
+      "peak_vram_mib": 4209.1,
+      "generator_params": 29362817,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_70",
+      "batch": 2,
+      "seconds_per_iteration": 0.7903,
+      "images_per_second": 2.53,
+      "peak_vram_mib": 1122.5,
+      "generator_params": 20543809,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_70",
+      "batch": 4,
+      "seconds_per_iteration": 1.4933,
+      "images_per_second": 2.68,
+      "peak_vram_mib": 1958.8,
+      "generator_params": 20543809,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_70",
+      "batch": 8,
+      "seconds_per_iteration": 2.6657,
+      "images_per_second": 3.0,
+      "peak_vram_mib": 3630.4,
+      "generator_params": 20543809,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_70",
+      "batch": 16,
+      "seconds_per_iteration": 5.7079,
+      "images_per_second": 2.8,
+      "peak_vram_mib": 6969.1,
+      "generator_params": 20543809,
+      "critic_params": 2762817
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_142",
+      "batch": 2,
+      "seconds_per_iteration": 0.7806,
+      "images_per_second": 2.56,
+      "peak_vram_mib": 1189.5,
+      "generator_params": 20543809,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_142",
+      "batch": 4,
+      "seconds_per_iteration": 1.3709,
+      "images_per_second": 2.92,
+      "peak_vram_mib": 2022.8,
+      "generator_params": 20543809,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_142",
+      "batch": 8,
+      "seconds_per_iteration": 2.5073,
+      "images_per_second": 3.19,
+      "peak_vram_mib": 3694.4,
+      "generator_params": 20543809,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_dc_5",
+      "critic": "patch_critic_142",
+      "batch": 16,
+      "seconds_per_iteration": 6.4182,
+      "images_per_second": 2.49,
+      "peak_vram_mib": 8094.8,
+      "generator_params": 20543809,
+      "critic_params": 6957121
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": null,
+      "batch": 2,
+      "seconds_per_iteration": 0.0564,
+      "images_per_second": 35.46,
+      "peak_vram_mib": 612.9,
+      "generator_params": 29362817,
+      "critic_params": 0
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": null,
+      "batch": 4,
+      "seconds_per_iteration": 0.0892,
+      "images_per_second": 44.83,
+      "peak_vram_mib": 889.7,
+      "generator_params": 29362817,
+      "critic_params": 0
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": null,
+      "batch": 8,
+      "seconds_per_iteration": 0.1634,
+      "images_per_second": 48.95,
+      "peak_vram_mib": 1443.4,
+      "generator_params": 29362817,
+      "critic_params": 0
+    },
+    {
+      "status": "ok",
+      "generator": "unet_p2p_6",
+      "critic": null,
+      "batch": 16,
+      "seconds_per_iteration": 0.3193,
+      "images_per_second": 50.11,
+      "peak_vram_mib": 2550.8,
+      "generator_params": 29362817,
+      "critic_params": 0
+    }
+  ]
+}

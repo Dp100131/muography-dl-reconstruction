@@ -1,0 +1,71 @@
+{
+  "provisional": false,
+  "generated_utc": "2026-09-05T23:38:59+00:00",
+  "source": "validation dry run (Stage 19 step 7); test set untouched",
+  "git_commit": "",
+  "z_thr": 10.464,
+  "z_thr_note": "scalar = reference-arm calibration (continuity); detection ALWAYS uses z_thr_by_arm when the arm has an entry \u2014 per-arm 99th-percentile sham calibration decided during the dry run, before any test contact",
+  "z_thr_by_arm": {
+    "C": {
+      "0.01": 2.678,
+      "0.05": 4.51,
+      "0.10": 5.894,
+      "0.50": 9.547
+    },
+    "D": {
+      "0.01": 18.733,
+      "0.05": 19.486,
+      "0.10": 20.361,
+      "0.50": 9.537
+    },
+    "E": {
+      "0.01": 16.515,
+      "0.05": 15.652,
+      "0.10": 17.007,
+      "0.50": 11.708
+    },
+    "F": {
+      "0.01": 18.067,
+      "0.05": 16.521,
+      "0.10": 14.336,
+      "0.50": 11.561
+    }
+  },
+  "z_thr_percentile": 99.0,
+  "preserved_tolerance_X": 0.3,
+  "preserved_tolerance_X_note": "max(0.3, mediana de 3*rel-SD(C_ref) medida = 0.0)",
+  "inflation_tolerance_Y": 0.5,
+  "s2_floors": {
+    "0.50": {
+      "ssim": 0.8854,
+      "psnr_db": 31.3
+    },
+    "0.10": {
+      "ssim": 0.7649,
+      "psnr_db": 28.96
+    },
+    "0.05": {
+      "ssim": 0.7405,
+      "psnr_db": 28.63
+    },
+    "0.01": {
+      "ssim": 0.7233,
+      "psnr_db": 28.56
+    }
+  },
+  "s3": {
+    "preserved_min": 0.9,
+    "hallucination_max": 0.05,
+    "lost_max": 0.1,
+    "levels_required": [
+      "0.50",
+      "0.10",
+      "0.05"
+    ],
+    "hallucination_note": "cada brazo se compara contra su propia calibracion (FPR 1% en validacion por construccion); 5% = 5x esa calibracion"
+  },
+  "ceiling_ssim": 0.9048,
+  "ceiling_ssim_sd": 0.0042,
+  "ceiling_psnr_db": 31.22,
+  "ceiling_half_stats_split": 0.6554
+}

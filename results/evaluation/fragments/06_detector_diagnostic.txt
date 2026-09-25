@@ -1,0 +1,76 @@
+source: results/evaluation/test/metrics.csv (frozen test cache, read-only)
+==============================================================================
+ESTRUCTURA DEL CACHE
+==============================================================================
+filas totales: 149,478
+
+filas por scope:
+scope
+sham       81840
+roi        37854
+global     25464
+texture     4320
+
+brazos:
+arm                         arm_label
+  A                   referencia 30 d
+  B         crudo (escala compartida)
+  C             crudo (corregido 1/f)
+  D clasica congelada (corregido 1/f)
+  E                          U-Net L1
+  F                          cWGAN-GP
+  G      replicas de semilla (f=0.05)
+  H     matriz cruzada (exploratoria)
+  I          grilla densa de thinning
+
+==============================================================================
+PRUEBA DECISIVA — EL BRAZO A ES LA REFERENCIA DE 30 DIAS (SIN MODELO)
+==============================================================================
+anomalias reales   n=   54  |z| mediana=   3.24  max=  10.11
+regiones falsas    n=  240  |z| mediana=   3.19  max=  10.62
+umbral = percentil 99 de las falsas: 10.29
+anomalias reales que lo superan: 0.0%
+AUC con |z|: 0.483
+
+==============================================================================
+COMPARACION DE ESTADISTICOS — AUC (0.5 = no distingue, 1.0 = perfecto)
+==============================================================================
+brazo       f  n_roi  n_sham   AUC |z|  AUC |CNR|   AUC |C|
+A        1.00     54     240     0.483      0.386     0.289
+C        0.01   1075    4665     0.584      0.536     0.443
+C        0.05   1080    4800     0.581      0.531     0.436
+C        0.10   1080    4800     0.578      0.518     0.414
+C        0.50   1080    4800     0.523      0.437     0.320
+D        0.01   1080    4797     0.454      0.393     0.332
+D        0.05   1080    4800     0.404      0.345     0.330
+D        0.10   1080    4800     0.395      0.335     0.335
+D        0.50   1080    4800     0.523      0.437     0.320
+E        0.01   2160    9600     0.355      0.288     0.335
+E        0.05   1080    4800     0.290      0.237     0.283
+E        0.10   1080    4800     0.370      0.325     0.317
+E        0.50   1080    4800     0.526      0.442     0.322
+F        0.01   1080    4800     0.360      0.315     0.300
+F        0.05   1080    4800     0.450      0.406     0.321
+F        0.10   1080    4800     0.465      0.408     0.304
+F        0.50   1080    4800     0.508      0.415     0.294
+
+==============================================================================
+POR QUE FALLA — EL RUIDO DEL FONDO NO ES ESTADISTICO
+==============================================================================
+dispersion relativa del anillo de fondo (referencia): mediana=1.1220
+si el fondo fuera plano, esa dispersion seria solo ruido de conteo;
+aqui incluye el gradiente de espesor de la montana, que es deterministico.
+
+n efectivo asumido por el estadistico z (pixeles del anillo): mediana=982
+el z divide por la raiz de ese n, asi que asume miles de medidas independientes;
+los pixeles vecinos estan correlacionados, por lo que el n real es mucho menor
+y el z queda inflado tanto para anomalias reales como para regiones falsas.
+
+==============================================================================
+POR TIPO DE ANOMALIA (brazo A, referencia)
+==============================================================================
+              count   median       max
+anomaly_kind                          
+cavity           24  2.75395   7.15118
+conduit          18  3.93576   9.01950
+dense_body       12  4.26193  10.11350
