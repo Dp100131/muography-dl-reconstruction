@@ -1,0 +1,118 @@
+{
+  "_comment": "Stage 16 OFAT grid, frozen by the pre-registered Phase C protocol (table 'Grilla OFAT alrededor de C0'). Every run is C0 (base_config) with ONE axis moved; 80 epochs or early stop with patience 25. Seed = 20260805*10^6 + 16*10^4 + config*10^2 + 0. Adding, removing or re-tuning an entry after seeing results requires a dated addendum, never a silent edit.",
+  "phase": "e16",
+  "base_config": "scripts/training/configs/e15_reference.json",
+  "epochs": 80,
+  "patience": 25,
+  "runs": [
+    {
+      "run_id": "e16-c01",
+      "axis": "lambda_l1",
+      "value": 10,
+      "seed": 20260805160100,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"lambda_l1": 10}
+    },
+    {
+      "run_id": "e16-c02",
+      "axis": "lambda_l1",
+      "value": 50,
+      "seed": 20260805160200,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"lambda_l1": 50}
+    },
+    {
+      "run_id": "e16-c03",
+      "axis": "lambda_l1",
+      "value": 200,
+      "seed": 20260805160300,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"lambda_l1": 200}
+    },
+    {
+      "run_id": "e16-c04",
+      "axis": "lr",
+      "value": 5e-05,
+      "seed": 20260805160400,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"lr": 5e-05}
+    },
+    {
+      "run_id": "e16-c05",
+      "axis": "lr",
+      "value": 0.0002,
+      "seed": 20260805160500,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"lr": 0.0002}
+    },
+    {
+      "run_id": "e16-c06",
+      "axis": "n_critic",
+      "value": 2,
+      "seed": 20260805160600,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"n_critic": 2}
+    },
+    {
+      "run_id": "e16-c07",
+      "axis": "generator",
+      "value": "unet_dc_5",
+      "seed": 20260805160700,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"generator": "unet_dc_5"}
+    },
+    {
+      "run_id": "e16-c08",
+      "axis": "generator",
+      "value": "unet_p2p_6_base32",
+      "seed": 20260805160800,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"generator": "unet_p2p_6_base32"}
+    },
+    {
+      "run_id": "e16-c09",
+      "axis": "batch",
+      "value": 16,
+      "seed": 20260805160900,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"batch": 16}
+    },
+    {
+      "run_id": "e16-c10",
+      "axis": "augmentation",
+      "value": "none",
+      "seed": 20260805161000,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"hflip": false}
+    },
+    {
+      "run_id": "e16-c11",
+      "axis": "augmentation",
+      "value": "hflip+rethin",
+      "seed": 20260805161100,
+      "epochs": 80,
+      "patience": 25,
+      "note": "On-the-fly re-thinning IS implemented: MuographyPairs(rethin=True) redraws low ~ Binomial(ref_counts, f) per access, the exact generative process the frozen shards were built with (scripts/analysis/build_dataset.py). The shards are read-only; only the training input is redrawn, the reference target never changes.",
+      "overrides": {"hflip": true, "rethin": true}
+    },
+    {
+      "run_id": "e16-c12",
+      "axis": "critic",
+      "value": "patch_critic_142",
+      "seed": 20260805161200,
+      "epochs": 80,
+      "patience": 25,
+      "overrides": {"critic": "patch_critic_142"}
+    }
+  ]
+}
