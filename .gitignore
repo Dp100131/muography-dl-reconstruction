@@ -1,0 +1,55 @@
+# Raw / heavy inputs and outputs, gitignored at the repo root
+/data/
+/dataset/
+/runs/
+/checkpoints/
+cache/
+build/
+build_sc3/
+/sc3-deploy.tar.gz
+
+# Weights and array dumps
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.npy
+*.h5
+*.hdf5
+*.root
+
+# Raw per-view histograms and EcoMug generator artifacts
+*_hist.csv
+muons.csv
+ecomug_gen
+ecomug-src/
+
+# Live evaluation cache written into results/evaluation/<split>/ on a real run
+# (the shipped results/evaluation/test/*.csv.gz snapshots stay tracked)
+/results/evaluation/*/metrics.csv
+/results/evaluation/*/octiles.csv
+/results/evaluation/test_access_log.json
+/results/evaluation/blind/
+
+# Logs
+*.log
+logs/
+
+# CMake build trees
+CMakeFiles/
+CMakeCache.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp

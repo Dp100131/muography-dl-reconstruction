@@ -1,0 +1,10 @@
+# PyTorch cu118 wheels
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.6.0+cu118
+numpy==2.4.4
+scikit-image==0.26.0
+PyWavelets==1.8.0
+matplotlib==3.11.1
+pandas
+scipy
+bm3d
