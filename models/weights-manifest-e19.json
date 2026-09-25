@@ -1,0 +1,58 @@
+{
+  "generated_utc": "2026-09-05T22:34:00Z",
+  "stage": "19.5",
+  "runs_root": "runs",
+  "runs": [
+    {
+      "run_id": "e19-unetl1-f50",
+      "checkpoint": "runs/e19-unetl1-f50/checkpoints/best.pt",
+      "sha256": "f0cb0b01d9d9dddaf944c3c6c268cda954c45962f3f5243dc04382d53b579fe6",
+      "bytes": 352389380,
+      "config_sha8": "2b561d97",
+      "best_val_ssim": 0.9014,
+      "best_epoch": 19,
+      "generator": "unet_p2p_6"
+    },
+    {
+      "run_id": "e19-unetl1-f10",
+      "checkpoint": "runs/e19-unetl1-f10/checkpoints/best.pt",
+      "sha256": "fbda1946b25d71643814878cb04a1858c33495c2e0f0bc218a7f74fa1f7f3567",
+      "bytes": 352389380,
+      "config_sha8": "066302f7",
+      "best_val_ssim": 0.7821,
+      "best_epoch": 11,
+      "generator": "unet_p2p_6"
+    },
+    {
+      "run_id": "e19-unetl1-f5",
+      "checkpoint": "runs/e19-unetl1-f5/checkpoints/best.pt",
+      "sha256": "b1a18200130a8ba599c7d3fc4429cbe258c3234b7afc4685bd0ec14bbe7d07ee",
+      "bytes": 352389508,
+      "config_sha8": "c14b109d",
+      "best_val_ssim": 0.7775,
+      "best_epoch": 1,
+      "generator": "unet_p2p_6"
+    },
+    {
+      "run_id": "e19-unetl1-f1",
+      "checkpoint": "runs/e19-unetl1-f1/checkpoints/best.pt",
+      "sha256": "5de3658bc3eb20d58eabaa4471f60c2b40271f542b47b7c82f8e46ba52c86006",
+      "bytes": 352389380,
+      "config_sha8": "9e1fec97",
+      "best_val_ssim": 0.7736,
+      "best_epoch": 2,
+      "generator": "unet_p2p_6"
+    },
+    {
+      "run_id": "e19-unetl1-f1-shared",
+      "checkpoint": "runs/e19-unetl1-f1-shared/checkpoints/best.pt",
+      "sha256": "26b5f1402e13699630657dd811d075f0787cff713141e395772df8e867b5f169",
+      "bytes": 352389444,
+      "config_sha8": "20a0ce76",
+      "best_val_ssim": 0.775,
+      "best_epoch": 2,
+      "generator": "unet_p2p_6"
+    }
+  ],
+  "missing": []
+}

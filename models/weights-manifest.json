@@ -1,0 +1,63 @@
+{
+  "generated_utc": "2026-09-03T18:27:36Z",
+  "stage": "17",
+  "comment": "SHA-256 of the frozen Stage 17 generators. Regenerate with scripts/training/chain_driver.py; the external backup required before Stage 20 is a human step.",
+  "runs_root": "runs",
+  "runs": [
+    {
+      "run_id": "e17-final-f50",
+      "checkpoint": "runs/e17-final-f50/checkpoints/best.pt",
+      "sha256": "53f9bf630bfcd0924f00fc8563cc6d55b3a96c573e81f124f8feab9f6d904ef4",
+      "bytes": 279757830,
+      "config_sha8": "8fd5834b",
+      "best_val_ssim": 0.9054,
+      "best_epoch": 7
+    },
+    {
+      "run_id": "e17-final-f10",
+      "checkpoint": "runs/e17-final-f10/checkpoints/best.pt",
+      "sha256": "561e3a838b8ee76913f86a39dd9c66f469a56607632fd6118dadb09bc4deb5ac",
+      "bytes": 279757830,
+      "config_sha8": "abb14f33",
+      "best_val_ssim": 0.7997,
+      "best_epoch": 22
+    },
+    {
+      "run_id": "e17-final-f5",
+      "checkpoint": "runs/e17-final-f5/checkpoints/best.pt",
+      "sha256": "72bef9f9004d6b59ddc3681076073aaee85e21c223f14109d2e051d641fe729c",
+      "bytes": 279757830,
+      "config_sha8": "306ed284",
+      "best_val_ssim": 0.7834,
+      "best_epoch": 51
+    },
+    {
+      "run_id": "e17-final-f1",
+      "checkpoint": "runs/e17-final-f1/checkpoints/best.pt",
+      "sha256": "069510b90120c69b89d6c2fbda03b6b32286ea7197dc16acc585915bb1cb3fb3",
+      "bytes": 279757830,
+      "config_sha8": "e7130079",
+      "best_val_ssim": 0.7695,
+      "best_epoch": 19
+    },
+    {
+      "run_id": "e17-final-f5-s1",
+      "checkpoint": "runs/e17-final-f5-s1/checkpoints/best.pt",
+      "sha256": "398d7f44e81d455ad1b99086e86bbbb89cc89ef991de976a76f335f995521ff1",
+      "bytes": 279757894,
+      "config_sha8": "c29bfa6e",
+      "best_val_ssim": 0.7809,
+      "best_epoch": 63
+    },
+    {
+      "run_id": "e17-final-f5-s2",
+      "checkpoint": "runs/e17-final-f5-s2/checkpoints/best.pt",
+      "sha256": "a296d5a8ebb22c1741ae8e7447517f1ab99fe249c6b46845b7be07755c1ec1e7",
+      "bytes": 279757830,
+      "config_sha8": "9bb01bcb",
+      "best_val_ssim": 0.7836,
+      "best_epoch": 49
+    }
+  ],
+  "missing": []
+}
