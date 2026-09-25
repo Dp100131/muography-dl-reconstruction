@@ -1,0 +1,9 @@
+{
+ "direction_convention": "protocol lambda_open = Phi_int*A*d_omega (flat area, Guan-normalized, from surrogate campaign)",
+ "spectrum_source": "real EcoMug sample (stage 6, 1e7 muons), conditional on elevation band",
+ "charge_ratio_mu_plus_minus": 1.2794,
+ "total_open_sky_counts_30days_per_view": 36175379.91628132,
+ "n_elevation_rows": 256,
+ "n_spectrum_bands": 16,
+ "source_view": "geo-train-01_view0.npz"
+}

@@ -1,0 +1,25 @@
+{
+  "geometry_id": "geo-val-01",
+  "catalog_seed": 20260805,
+  "role": "val",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 698.7,
+    "height_m": 427.6,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 2.071,
+      "params": {
+        "cx_m": 21.3,
+        "cy_m": -13.1,
+        "radius_m": 25.3,
+        "z0_m": 0.0,
+        "z1_m": 361.6
+      }
+    }
+  ],
+  "description": "conducto r=25 m ρ=2.07"
+}

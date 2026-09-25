@@ -1,0 +1,37 @@
+{
+  "geometry_id": "geo-train-06",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 509.7,
+    "height_m": 416.3,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 1.832,
+      "params": {
+        "cx_m": 20.3,
+        "cy_m": -24.5,
+        "radius_m": 21.0,
+        "z0_m": 0.0,
+        "z1_m": 340.0
+      }
+    },
+    {
+      "kind": "dense_body",
+      "density_g_cm3": 3.285,
+      "params": {
+        "cx_m": 32.2,
+        "cy_m": -74.1,
+        "cz_m": 137.8,
+        "ax_m": 72.9,
+        "ay_m": 61.6,
+        "az_m": 64.6
+      }
+    }
+  ],
+  "description": "conducto r=21 m ρ=1.83 + cuerpo denso ρ=3.28"
+}

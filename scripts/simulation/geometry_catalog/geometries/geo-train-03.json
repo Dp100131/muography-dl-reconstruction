@@ -1,0 +1,24 @@
+{
+  "geometry_id": "geo-train-03",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 573.7,
+    "height_m": 356.2,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.267,
+      "params": {
+        "cx_m": -10.3,
+        "cy_m": -95.3,
+        "cz_m": 94.0,
+        "radius_m": 35.8
+      }
+    }
+  ],
+  "description": "cavidad r=36 m ρ=0.27"
+}

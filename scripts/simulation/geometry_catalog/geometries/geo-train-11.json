@@ -1,0 +1,45 @@
+{
+  "geometry_id": "geo-train-11",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 623.0,
+    "height_m": 419.8,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 1.972,
+      "params": {
+        "cx_m": 2.8,
+        "cy_m": -13.4,
+        "radius_m": 22.7,
+        "z0_m": 0.0,
+        "z1_m": 391.8
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.327,
+      "params": {
+        "cx_m": -37.7,
+        "cy_m": 5.3,
+        "cz_m": 133.0,
+        "radius_m": 42.5
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.157,
+      "params": {
+        "cx_m": -27.2,
+        "cy_m": 125.1,
+        "cz_m": 203.2,
+        "radius_m": 48.9
+      }
+    }
+  ],
+  "description": "conducto r=23 m ρ=1.97 + cavidad r=43 m ρ=0.33 + cavidad r=49 m ρ=0.16"
+}

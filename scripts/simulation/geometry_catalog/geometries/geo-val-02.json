@@ -1,0 +1,24 @@
+{
+  "geometry_id": "geo-val-02",
+  "catalog_seed": 20260805,
+  "role": "val",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 664.0,
+    "height_m": 367.3,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.208,
+      "params": {
+        "cx_m": 121.6,
+        "cy_m": 54.6,
+        "cz_m": 143.1,
+        "radius_m": 38.8
+      }
+    }
+  ],
+  "description": "cavidad r=39 m ρ=0.21"
+}

@@ -1,0 +1,47 @@
+{
+  "geometry_id": "geo-test-03",
+  "catalog_seed": 20260805,
+  "role": "test",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 518.5,
+    "height_m": 385.8,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 1.914,
+      "params": {
+        "cx_m": 32.4,
+        "cy_m": -13.8,
+        "radius_m": 30.2,
+        "z0_m": 0.0,
+        "z1_m": 344.9
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.222,
+      "params": {
+        "cx_m": -47.5,
+        "cy_m": -35.3,
+        "cz_m": 193.1,
+        "radius_m": 24.1
+      }
+    },
+    {
+      "kind": "dense_body",
+      "density_g_cm3": 3.244,
+      "params": {
+        "cx_m": 140.8,
+        "cy_m": -12.9,
+        "cz_m": 59.8,
+        "ax_m": 74.2,
+        "ay_m": 55.3,
+        "az_m": 64.9
+      }
+    }
+  ],
+  "description": "conducto r=30 m ρ=1.91 + cavidad r=24 m ρ=0.22 + cuerpo denso ρ=3.24"
+}

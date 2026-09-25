@@ -1,0 +1,26 @@
+{
+  "geometry_id": "geo-test-02",
+  "catalog_seed": 20260805,
+  "role": "test",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 642.2,
+    "height_m": 415.9,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "dense_body",
+      "density_g_cm3": 3.09,
+      "params": {
+        "cx_m": -57.1,
+        "cy_m": 56.6,
+        "cz_m": 182.1,
+        "ax_m": 52.3,
+        "ay_m": 41.9,
+        "az_m": 39.6
+      }
+    }
+  ],
+  "description": "cuerpo denso ρ=3.09"
+}

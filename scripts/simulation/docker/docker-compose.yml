@@ -1,0 +1,44 @@
+# Run from the repo root, inside a WSL terminal:
+#   docker compose -f scripts/simulation/docker/docker-compose.yml run --rm sim-batch
+# or copy this file reference into an alias. Output lands in ./data/output.
+services:
+  sim-batch:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: sim-batch
+    volumes:
+      - ../../../data/output:/workspace/data/output
+    working_dir: /workspace
+    command:
+      [
+        "/workspace/build/muography_sim",
+        "--geometry",
+        "/workspace/geometry_catalog/geometries/geo-train-01.json",
+        "--tables",
+        "/workspace/geant4_app/tables",
+        "--out",
+        "/workspace/data/output",
+      ]
+
+  sim-viz:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: sim-viz
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - ../../../data/output:/workspace/data/output
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    working_dir: /workspace
+    command:
+      [
+        "/workspace/build/muography_sim",
+        "--geometry",
+        "/workspace/geometry_catalog/geometries/geo-train-01.json",
+        "--tables",
+        "/workspace/geant4_app/tables",
+        "--out",
+        "/workspace/data/output",
+      ]

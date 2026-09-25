@@ -1,0 +1,34 @@
+{
+  "geometry_id": "geo-train-10",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 648.7,
+    "height_m": 449.6,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.464,
+      "params": {
+        "cx_m": -116.4,
+        "cy_m": -35.8,
+        "cz_m": 245.1,
+        "radius_m": 27.9
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.068,
+      "params": {
+        "cx_m": -148.2,
+        "cy_m": -51.6,
+        "cz_m": 174.6,
+        "radius_m": 45.7
+      }
+    }
+  ],
+  "description": "cavidad r=28 m ρ=0.46 + cavidad r=46 m ρ=0.07"
+}

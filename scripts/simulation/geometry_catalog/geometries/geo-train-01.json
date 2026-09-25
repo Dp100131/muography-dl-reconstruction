@@ -1,0 +1,13 @@
+{
+  "geometry_id": "geo-train-01",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 656.2,
+    "height_m": 359.1,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [],
+  "description": "edificio homogéneo (control)"
+}

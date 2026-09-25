@@ -1,0 +1,25 @@
+{
+  "geometry_id": "geo-train-09",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 549.4,
+    "height_m": 373.2,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 1.884,
+      "params": {
+        "cx_m": -9.4,
+        "cy_m": -10.2,
+        "radius_m": 18.4,
+        "z0_m": 0.0,
+        "z1_m": 336.1
+      }
+    }
+  ],
+  "description": "conducto r=18 m ρ=1.88"
+}

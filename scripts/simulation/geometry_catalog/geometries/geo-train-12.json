@@ -1,0 +1,26 @@
+{
+  "geometry_id": "geo-train-12",
+  "catalog_seed": 20260805,
+  "role": "train",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 534.5,
+    "height_m": 411.9,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "dense_body",
+      "density_g_cm3": 3.159,
+      "params": {
+        "cx_m": 110.2,
+        "cy_m": -55.5,
+        "cz_m": 100.8,
+        "ax_m": 57.5,
+        "ay_m": 57.4,
+        "az_m": 39.5
+      }
+    }
+  ],
+  "description": "cuerpo denso ρ=3.16"
+}

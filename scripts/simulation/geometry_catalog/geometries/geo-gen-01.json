@@ -1,0 +1,45 @@
+{
+  "geometry_id": "geo-gen-01",
+  "catalog_seed": 20260805,
+  "role": "gen",
+  "edifice": {
+    "shape": "cone",
+    "base_radius_m": 619.2,
+    "height_m": 425.4,
+    "rock_density_g_cm3": 2.65
+  },
+  "anomalies": [
+    {
+      "kind": "conduit",
+      "density_g_cm3": 1.831,
+      "params": {
+        "cx_m": -35.4,
+        "cy_m": -29.0,
+        "radius_m": 26.1,
+        "z0_m": 0.0,
+        "z1_m": 386.5
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.242,
+      "params": {
+        "cx_m": -98.4,
+        "cy_m": 49.1,
+        "cz_m": 187.3,
+        "radius_m": 40.9
+      }
+    },
+    {
+      "kind": "cavity",
+      "density_g_cm3": 0.048,
+      "params": {
+        "cx_m": -183.1,
+        "cy_m": -58.2,
+        "cz_m": 161.1,
+        "radius_m": 42.4
+      }
+    }
+  ],
+  "description": "conducto r=26 m ρ=1.83 + cavidad r=41 m ρ=0.24 + cavidad r=42 m ρ=0.05"
+}
