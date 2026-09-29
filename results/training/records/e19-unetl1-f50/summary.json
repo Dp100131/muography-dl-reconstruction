@@ -1,0 +1,45 @@
+{
+  "run_id": "e19-unetl1-f50",
+  "status": "done",
+  "stop_reason": "early_stop",
+  "out_root": "runs",
+  "config_sha8": "2b561d97",
+  "best_val_ssim": 0.9014,
+  "best_epoch": 19,
+  "epochs_run": 44,
+  "last_epoch": 44,
+  "global_step": 7920,
+  "overfit_n": null,
+  "wall_seconds": 2255.4,
+  "git_commit": "unknown",
+  "config": {
+    "run_id": "e19-unetl1-f50",
+    "generator": "unet_p2p_6",
+    "critic": null,
+    "fraction": 0.5,
+    "input_scaling": "ref_equivalent",
+    "hflip": true,
+    "lambda_gp": 10.0,
+    "lambda_l1": 100.0,
+    "lambda_adv": 0.0,
+    "lr": 0.0001,
+    "betas": [
+      0.0,
+      0.9
+    ],
+    "n_critic": 5,
+    "batch": 8,
+    "epochs": 150,
+    "seed": 20260805131000,
+    "early_stop": {
+      "metric": "val_ssim",
+      "patience": 25,
+      "min_delta": 0.001
+    },
+    "val_every": 1,
+    "sample_every": 5,
+    "overfit_n": null,
+    "max_iters": null,
+    "device": "cuda"
+  }
+}
