@@ -23,7 +23,12 @@ Run:  python scripts/analysis/test_oe1_pilot_roi.py
 
 from __future__ import annotations
 
+import argparse
+import atexit
+import json
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -703,6 +708,595 @@ def test_symmetry_gate_fails_when_flip_fraction_too_high() -> bool:
     return ok
 
 
+# ------------------------------------------------------------------- test 8
+# `analyze` subcommand (work unit U10), tested entirely on synthetic data.
+# Scratch directory for every synthetic pilot tree / prereg-dir / out-dir
+# built below: a fresh temporary directory per test process, isolated from
+# the project tree and removed at exit.
+_SCRATCH_ROOT = Path(tempfile.mkdtemp(prefix="oe1-pilot-roi-tests-"))
+atexit.register(shutil.rmtree, _SCRATCH_ROOT, ignore_errors=True)
+
+
+def _write_pilot_run(run_dir, hist: np.ndarray, *, events_transported: int, seed: int,
+                     detected_in_bins=None, engine="geant4-11.2.0") -> None:
+    """One synthetic pilot run: hist.csv + meta.json with the required keys
+    (REQUIRED_META_KEYS), schema matching RunAction.cc's real sidecar."""
+    run_dir.mkdir(parents=True, exist_ok=True)
+    stem = f"{pre.PILOT_GEOMETRY_ID}_view{pre.PILOT_VIEW_INDEX}"
+    hist_path = run_dir / f"{stem}_hist.csv"
+    np.savetxt(hist_path, hist, fmt="%d", delimiter=",", newline="\n")
+    if detected_in_bins is None:
+        detected_in_bins = int(round(float(hist.sum())))
+    meta = {
+        "events_transported": int(events_transported),
+        "detected_in_bins": int(detected_in_bins),
+        "threads": 4,
+        "seed": int(seed),
+        "grid": {"n_az": pre.N_AZ, "n_el": pre.N_EL, "az_half_deg": 30.0,
+                "el_min_deg": 2.0, "el_max_deg": 47.0},
+        "engine": engine,
+        "physics_note": "secondaries killed at creation; primary-only transport",
+        "sampling": "table-driven: protocol lambda_open row weights",
+    }
+    (run_dir / f"{stem}.meta.json").write_text(json.dumps(meta), encoding="utf-8")
+
+
+def _synthetic_masks() -> dict:
+    """Five small, disjoint regions on the real (N_EL, N_AZ) grid -- the
+    shape is fixed by the surrogate's angular grid, but the regions
+    themselves are arbitrary and independent of any real geometry."""
+    masks = {name: np.zeros((pre.N_EL, pre.N_AZ), dtype=bool) for name in
+             ("R_int", "R_cond", "R_body", "R_rock", "R_sky")}
+    masks["R_int"][0:5, 0:5] = True         # 25 pixels
+    masks["R_cond"][10:20, 10:20] = True    # 100 pixels
+    masks["R_body"][30:40, 30:40] = True    # 100 pixels
+    masks["R_rock"][50:100, 50:150] = True  # 5000 pixels
+    masks["R_sky"][200:256, :] = True       # 14336 pixels
+    return masks
+
+
+def _synthetic_lambda_map(masks: dict) -> np.ndarray:
+    lam = np.full((pre.N_EL, pre.N_AZ), 50.0, dtype=np.float64)
+    lam[masks["R_int"]] = 200.0
+    lam[masks["R_cond"]] = 100.0
+    lam[masks["R_body"]] = 120.0
+    lam[masks["R_rock"]] = 30.0
+    lam[masks["R_sky"]] = 800.0
+    return lam
+
+
+def _build_synthetic_pilot_tree(root, masks: dict, *, r_int_increment_per_seed=(2, 3, 4),
+                                events_transported_overrides=None) -> None:
+    """Common-random-numbers pilot tree, matching the real pilot's own
+    design: variant A and B share the SAME Poisson draw per seed EVERYWHERE
+    except inside R_int, where B additionally gets a known, deterministic
+    per-pixel increment. R_rock/R_sky (and R_cond/R_body) therefore come out
+    EXACTLY identical between A and B by construction -- the
+    zero-replicate-SD case this module's analyze code must handle without
+    inf/NaN or a crash (see the module's own docstring on `analyze`)."""
+    events_transported_overrides = events_transported_overrides or {}
+    lam = _synthetic_lambda_map(masks)
+    for i, seed in enumerate(pre.PILOT_SEEDS):
+        rng = np.random.default_rng(90000 + seed)
+        base = rng.poisson(lam).astype(np.float64)
+        hist_a = base.copy()
+        hist_b = base.copy()
+        hist_b[masks["R_int"]] += r_int_increment_per_seed[i]
+
+        for variant_key, hist in (("A", hist_a), ("B", hist_b)):
+            paths = pre.pilot_run_paths(root, variant_key, seed)
+            events = events_transported_overrides.get((variant_key, seed), pre.PILOT_EVENTS_PER_RUN)
+            _write_pilot_run(paths["dir"], hist, events_transported=events, seed=seed)
+
+
+def _write_synthetic_prereg(prereg_dir, masks: dict, prereg_rows: dict) -> None:
+    prereg_dir.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(prereg_dir / "roi-mascaras.npz", **masks)
+    pixel_counts = {name: int(np.count_nonzero(m)) for name, m in masks.items()}
+    report = {"pixel_counts": pixel_counts, "roi_effect_table": prereg_rows}
+    (prereg_dir / "roi-preregistro.json").write_text(json.dumps(report), encoding="utf-8")
+
+
+# Synthetic pre-registered numbers engineered to hit 3 CONTRASTING section-7
+# categories in a single run: R_int gets a real injected effect with adequate
+# power (effect_present); R_cond has no injected effect but insufficient
+# predicted power (inconclusive_insufficient_power, like the real geo-train-06
+# R_int); R_body has no injected effect but adequate power (a genuine,
+# informative null -- null_adequate_power). R_rock/R_sky follow the real
+# pre-registration's own convention (delta_max == 0.0 exactly).
+_SYNTHETIC_PREREG_ROWS = {
+    "R_int":  {"expected_b1_per_1e6_events": 1.0, "expected_conduit_wins_per_1e6_events": 1.0,
+              "delta_max_b1_minus_conduit_wins": 80.0, "poisson_se_per_run": 10.0,
+              "predicted_se_mean_3seeds": 10.0},
+    "R_cond": {"expected_b1_per_1e6_events": 1.0, "expected_conduit_wins_per_1e6_events": 1.0,
+              "delta_max_b1_minus_conduit_wins": 5.0, "poisson_se_per_run": 50.0,
+              "predicted_se_mean_3seeds": 50.0},
+    "R_body": {"expected_b1_per_1e6_events": 1.0, "expected_conduit_wins_per_1e6_events": 1.0,
+              "delta_max_b1_minus_conduit_wins": 50.0, "poisson_se_per_run": 30.0,
+              "predicted_se_mean_3seeds": 30.0},
+    "R_rock": {"expected_b1_per_1e6_events": 1.0, "expected_conduit_wins_per_1e6_events": 1.0,
+              "delta_max_b1_minus_conduit_wins": 0.0, "poisson_se_per_run": 20.0,
+              "predicted_se_mean_3seeds": 20.0},
+    "R_sky":  {"expected_b1_per_1e6_events": 1.0, "expected_conduit_wins_per_1e6_events": 1.0,
+              "delta_max_b1_minus_conduit_wins": 0.0, "poisson_se_per_run": 700.0,
+              "predicted_se_mean_3seeds": 700.0},
+}
+
+
+def _build_full_synthetic_scenario(tag: str) -> dict:
+    base = _SCRATCH_ROOT / tag
+    pilot_root = base / "pilot-root"
+    prereg_dir = base / "prereg"
+    masks = _synthetic_masks()
+    _build_synthetic_pilot_tree(pilot_root, masks)
+    _write_synthetic_prereg(prereg_dir, masks, _SYNTHETIC_PREREG_ROWS)
+    return {"pilot_root": pilot_root, "prereg_dir": prereg_dir, "base": base}
+
+
+def test_load_pilot_hist_counts_rejects_bad_input() -> bool:
+    tmp_dir = _SCRATCH_ROOT / "bad-hist"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    good = np.zeros((pre.N_EL, pre.N_AZ), dtype=np.float64)
+    good[0, 0] = 5.0
+    good_path = tmp_dir / "good_hist.csv"
+    np.savetxt(good_path, good, fmt="%d", delimiter=",")
+
+    wrong_shape_path = tmp_dir / "wrong_shape_hist.csv"
+    np.savetxt(wrong_shape_path, np.zeros((10, 10)), fmt="%d", delimiter=",")
+
+    negative = good.copy()
+    negative[1, 1] = -3.0
+    negative_path = tmp_dir / "negative_hist.csv"
+    np.savetxt(negative_path, negative, fmt="%.1f", delimiter=",")
+
+    non_integer = good.copy()
+    non_integer[2, 2] = 3.5
+    non_integer_path = tmp_dir / "non_integer_hist.csv"
+    np.savetxt(non_integer_path, non_integer, fmt="%.1f", delimiter=",")
+
+    def _raises(path) -> bool:
+        try:
+            pre.load_pilot_hist_counts(path)
+            return False
+        except ValueError:
+            return True
+
+    checks = {
+        "valid histogram loads": np.array_equal(pre.load_pilot_hist_counts(good_path), good),
+        "wrong shape rejected": _raises(wrong_shape_path),
+        "negative counts rejected": _raises(negative_path),
+        "non-integer counts rejected": _raises(non_integer_path),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  load_pilot_hist_counts_rejects_bad_input: {sum(checks.values())}/{len(checks)} "
+         f"checks -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_happy_path() -> bool:
+    root = _SCRATCH_ROOT / "validate-happy" / "pilot-root"
+    _build_synthetic_pilot_tree(root, _synthetic_masks())
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "no errors": result["errors"] == [],
+        "no warnings": result["warnings"] == [],
+        "all 6 runs loaded": len(result["runs"]["A"]) == 3 and len(result["runs"]["B"]) == 3,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL ({result['errors']}, {result['warnings']})")
+    print(f"  validate_pilot_tree_happy_path: errors={len(result['errors'])} "
+         f"warnings={len(result['warnings'])} -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_catches_hist_meta_mismatch() -> bool:
+    root = _SCRATCH_ROOT / "validate-hist-meta-mismatch" / "pilot-root"
+    _build_synthetic_pilot_tree(root, _synthetic_masks())
+    paths = pre.pilot_run_paths(root, "A", pre.PILOT_SEEDS[0])
+    meta = json.loads(paths["meta"].read_text(encoding="utf-8"))
+    meta["detected_in_bins"] = int(meta["detected_in_bins"]) + 12345
+    paths["meta"].write_text(json.dumps(meta), encoding="utf-8")
+
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "at least one error": len(result["errors"]) > 0,
+        "error mentions the sum/detected_in_bins mismatch": any(
+            "detected_in_bins" in e and "does not match" in e for e in result["errors"]),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  validate_pilot_tree_catches_hist_meta_mismatch: errors={result['errors']} -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_reports_wrong_events_as_warning_not_error() -> bool:
+    root = _SCRATCH_ROOT / "validate-wrong-events" / "pilot-root"
+    bad_seed = pre.PILOT_SEEDS[1]
+    _build_synthetic_pilot_tree(root, _synthetic_masks(),
+                               events_transported_overrides={("B", bad_seed): 999_000})
+
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "no fatal errors": result["errors"] == [],
+        "exactly one warning": len(result["warnings"]) == 1,
+        "warning mentions events_transported": (
+            len(result["warnings"]) == 1 and "events_transported" in result["warnings"][0]),
+        "run is still loaded (not dropped)": bad_seed in result["runs"]["B"],
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  validate_pilot_tree_reports_wrong_events_as_warning: errors={result['errors']} "
+         f"warnings={result['warnings']} -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_catches_seed_mismatch() -> bool:
+    root = _SCRATCH_ROOT / "validate-seed-mismatch" / "pilot-root"
+    _build_synthetic_pilot_tree(root, _synthetic_masks())
+    paths = pre.pilot_run_paths(root, "A", pre.PILOT_SEEDS[1])
+    meta = json.loads(paths["meta"].read_text(encoding="utf-8"))
+    meta["seed"] = 999999999
+    paths["meta"].write_text(json.dumps(meta), encoding="utf-8")
+
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "at least one error": len(result["errors"]) > 0,
+        "error mentions the seed mismatch": any(
+            "does not match the run directory's own seed" in e for e in result["errors"]),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  validate_pilot_tree_catches_seed_mismatch: errors={result['errors']} -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_catches_missing_run() -> bool:
+    root = _SCRATCH_ROOT / "validate-missing-run" / "pilot-root"
+    _build_synthetic_pilot_tree(root, _synthetic_masks())
+    paths = pre.pilot_run_paths(root, "B", pre.PILOT_SEEDS[2])
+    paths["hist"].unlink()
+
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "at least one error": len(result["errors"]) > 0,
+        "error mentions a missing input file": any(
+            "missing input file" in e for e in result["errors"]),
+        "the other 5 runs still loaded": (
+            len(result["runs"]["A"]) == 3 and len(result["runs"]["B"]) == 2),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  validate_pilot_tree_catches_missing_run: errors={result['errors']} -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_validate_pilot_tree_catches_inconsistent_meta_field() -> bool:
+    root = _SCRATCH_ROOT / "validate-inconsistent-field" / "pilot-root"
+    _build_synthetic_pilot_tree(root, _synthetic_masks())
+    paths = pre.pilot_run_paths(root, "B", pre.PILOT_SEEDS[0])
+    meta = json.loads(paths["meta"].read_text(encoding="utf-8"))
+    meta["engine"] = "geant4-11.9.9-different-build"
+    paths["meta"].write_text(json.dumps(meta), encoding="utf-8")
+
+    result = pre.load_and_validate_pilot_tree(root)
+    checks = {
+        "at least one error": len(result["errors"]) > 0,
+        "error mentions the differing 'engine' field": any(
+            "'engine'" in e for e in result["errors"]),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  validate_pilot_tree_catches_inconsistent_meta_field: errors={result['errors']} -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_per_run_mask_counts_and_paired_differences_hand_computed() -> bool:
+    """One-pixel mask, hand-picked counts: A = 10 every seed, B = 12/15/22 ->
+    D = 2/5/12 -- mean, sample SD (ddof=1) and SE = SD/sqrt(3) all
+    hand-computable and checked against numpy's own primitives applied to
+    the same 3 numbers directly (independent of paired_differences' internals)."""
+    mask = np.zeros((pre.N_EL, pre.N_AZ), dtype=bool)
+    mask[7, 3] = True
+    a_vals = {s: 10.0 for s in pre.PILOT_SEEDS}
+    b_vals = dict(zip(pre.PILOT_SEEDS, (12.0, 15.0, 22.0)))
+
+    runs = {"A": {}, "B": {}}
+    for seed, val in a_vals.items():
+        hist = np.zeros((pre.N_EL, pre.N_AZ), dtype=np.float64)
+        hist[7, 3] = val
+        runs["A"][seed] = {"hist": hist, "events_transported": pre.PILOT_EVENTS_PER_RUN}
+    for seed, val in b_vals.items():
+        hist = np.zeros((pre.N_EL, pre.N_AZ), dtype=np.float64)
+        hist[7, 3] = val
+        runs["B"][seed] = {"hist": hist, "events_transported": pre.PILOT_EVENTS_PER_RUN}
+
+    mask_counts = pre.per_run_mask_counts(runs, {"only": mask})
+    diffs = pre.paired_differences(mask_counts)
+    row = diffs["only"]
+
+    d_values = np.array([b_vals[s] - a_vals[s] for s in pre.PILOT_SEEDS])
+    expected_mean = float(d_values.mean())
+    expected_sd = float(d_values.std(ddof=1))
+    expected_se = expected_sd / np.sqrt(3)
+
+    checks = {
+        "mean matches hand computation": abs(row["mean_diff_per_1e6_events"] - expected_mean) < 1e-9,
+        "sd matches hand computation": abs(row["sd_between_replicates"] - expected_sd) < 1e-9,
+        "se matches hand computation": abs(row["se_observed_mean_3seeds"] - expected_se) < 1e-9,
+        "n_seeds_nonzero_diff is 3": row["n_seeds_nonzero_diff"] == 3,
+        "per-seed diffs match": all(
+            abs(row["per_seed_diff_per_1e6_events"][str(s)] - (b_vals[s] - a_vals[s])) < 1e-9
+            for s in pre.PILOT_SEEDS),
+        "raw/per-1e6 counts equal (events == design value)": abs(
+            mask_counts["only"]["A"][pre.PILOT_SEEDS[0]]["count_raw"] - 10.0) < 1e-9,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  per_run_mask_counts_and_paired_differences_hand_computed: mean="
+         f"{row['mean_diff_per_1e6_events']:.6f} sd={row['sd_between_replicates']:.6f} "
+         f"se={row['se_observed_mean_3seeds']:.6f} -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_paired_differences_finite_when_a_equals_b_in_some_roi() -> bool:
+    """Design fact: A and B share seeds, so a paired difference can be
+    EXACTLY 0 in every seed for an ROI the fix never touches (e.g. R_sky,
+    R_rock). Checks: mean/sd/se come out as finite 0.0 (never None/NaN/inf);
+    section 7's category is governed by se_predicted alone, so a zero
+    replicate SD must NOT push an insufficient-power ROI into a 'decisive'
+    category, and an adequate-power ROI with D == 0 must still resolve
+    cleanly to the genuine null case; and the R_rock/R_sky control check
+    reports 'compatible with zero', not a crash or a spurious flag."""
+    mask = np.zeros((pre.N_EL, pre.N_AZ), dtype=bool)
+    mask[11, 4] = True
+    identical_val = 321.0
+
+    runs = {"A": {}, "B": {}}
+    for variant_key in ("A", "B"):
+        runs[variant_key] = {}
+        for seed in pre.PILOT_SEEDS:
+            hist = np.zeros((pre.N_EL, pre.N_AZ), dtype=np.float64)
+            hist[11, 4] = identical_val
+            runs[variant_key][seed] = {"hist": hist, "events_transported": pre.PILOT_EVENTS_PER_RUN}
+
+    mask_counts = pre.per_run_mask_counts(runs, {"only": mask})
+    diffs = pre.paired_differences(mask_counts)
+    row = diffs["only"]
+
+    case_insufficient_power = pre.classify_interpretation(
+        delta_max=80.0, se_predicted=200.0, mean_diff=row["mean_diff_per_1e6_events"])
+    case_adequate_power_null = pre.classify_interpretation(
+        delta_max=80.0, se_predicted=10.0, mean_diff=row["mean_diff_per_1e6_events"])
+    control = pre.control_spurious_difference_check(
+        row["mean_diff_per_1e6_events"], row["se_observed_mean_3seeds"])
+
+    checks = {
+        "mean is finite zero": row["mean_diff_per_1e6_events"] == 0.0,
+        "sd is finite zero, not None": row["sd_between_replicates"] == 0.0,
+        "sd is a real float, not NaN": np.isfinite(row["sd_between_replicates"]),
+        "se is finite zero, not None": row["se_observed_mean_3seeds"] == 0.0,
+        "n_seeds_nonzero_diff is 0": row["n_seeds_nonzero_diff"] == 0,
+        "insufficient-power case stays inconclusive despite SD==0":
+            case_insufficient_power["category"] == "inconclusive_insufficient_power",
+        "insufficient-power case is not decisive": case_insufficient_power["category"] not in
+            ("effect_present", "discordant"),
+        "adequate-power case resolves to a genuine null":
+            case_adequate_power_null["category"] == "null_adequate_power",
+        "control check: compatible with zero": control["compatible_with_zero"] is True,
+        "control check: no spurious difference flagged": control["spurious_difference_detected"] is False,
+        "control check values are finite": np.isfinite(control["se_observed_mean_3seeds"]),
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  paired_differences_finite_when_a_equals_b_in_some_roi: sd="
+         f"{row['sd_between_replicates']} insufficient_power="
+         f"{case_insufficient_power['category']} adequate_power_null="
+         f"{case_adequate_power_null['category']} -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_classify_interpretation_covers_section7_cases() -> bool:
+    """Section 7's four literal cases, plus the not_computable guard,
+    exercised directly (decoupled from any file I/O)."""
+    case1 = pre.classify_interpretation(delta_max=-0.0933, se_predicted=0.8629, mean_diff=-0.05)
+    case2 = pre.classify_interpretation(delta_max=-100.0, se_predicted=10.0, mean_diff=-90.0)
+    case3 = pre.classify_interpretation(delta_max=-100.0, se_predicted=60.0, mean_diff=-5.0)
+    case4 = pre.classify_interpretation(delta_max=-100.0, se_predicted=10.0, mean_diff=90.0)
+    not_computable = pre.classify_interpretation(delta_max=5.0, se_predicted=1.0, mean_diff=None)
+    control_zero_delta = pre.classify_interpretation(delta_max=0.0, se_predicted=20.0, mean_diff=0.0)
+
+    checks = {
+        "case1 -> inconclusive_insufficient_power": case1["category"] == "inconclusive_insufficient_power",
+        "case2 -> effect_present (sign matches)": case2["category"] == "effect_present",
+        "case3 -> null_adequate_power": case3["category"] == "null_adequate_power",
+        "case4 -> discordant (wrong sign)": case4["category"] == "discordant",
+        "not_computable when mean_diff is None": not_computable["category"] == "not_computable",
+        "not_computable has no sign field": not_computable["sign_matches_delta_max"] is None,
+        "control (delta_max==0) resolves to inconclusive, not discordant":
+            control_zero_delta["category"] == "inconclusive_insufficient_power",
+        "control's D/Delta_max ratio is None (not NaN/inf) when delta_max==0":
+            control_zero_delta["abs_mean_diff_over_abs_delta_max"] is None,
+        "case1's Delta_max/SE ratio is a finite number": case1["abs_delta_max_over_se_predicted"] is not None,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  classify_interpretation_covers_section7_cases: {sum(checks.values())}/{len(checks)} "
+         f"checks -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_control_spurious_difference_check() -> bool:
+    compatible = pre.control_spurious_difference_check(mean_diff=1.5, se_observed=2.0)
+    incompatible = pre.control_spurious_difference_check(mean_diff=9.0, se_observed=2.0)
+    zero_case = pre.control_spurious_difference_check(mean_diff=0.0, se_observed=0.0)
+    none_case = pre.control_spurious_difference_check(mean_diff=None, se_observed=None)
+
+    checks = {
+        "compatible when |D| <= SE": compatible["compatible_with_zero"] is True,
+        "no spurious flag when compatible": compatible["spurious_difference_detected"] is False,
+        "incompatible when |D| > SE": incompatible["compatible_with_zero"] is False,
+        "spurious flag when incompatible": incompatible["spurious_difference_detected"] is True,
+        "zero SD and zero D is compatible": zero_case["compatible_with_zero"] is True,
+        "zero-case value is finite, not NaN": np.isfinite(zero_case["se_observed_mean_3seeds"]),
+        "None input does not crash and returns None fields": none_case["compatible_with_zero"] is None,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  control_spurious_difference_check: {sum(checks.values())}/{len(checks)} checks -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_global_efficiency_hand_computed() -> bool:
+    runs = {"A": {}, "B": {}}
+    for seed, detected, events in zip(pre.PILOT_SEEDS, (100, 200, 300), (1000, 1000, 1000)):
+        runs["A"][seed] = {"detected_in_bins": detected, "events_transported": events}
+    for seed, detected, events in zip(pre.PILOT_SEEDS, (50, 60, 70), (1000, 1000, 0)):
+        runs["B"][seed] = {"detected_in_bins": detected, "events_transported": events}
+
+    eff = pre.global_efficiency(runs)
+    seed0 = pre.PILOT_SEEDS[0]
+    seed_last = pre.PILOT_SEEDS[2]
+
+    checks = {
+        "per-run A efficiency matches hand computation":
+            abs(eff["per_run"]["A"][seed0]["efficiency"] - 0.1) < 1e-12,
+        "per-variant A total efficiency matches hand computation":
+            abs(eff["per_variant"]["A"]["efficiency"] - (600.0 / 3000.0)) < 1e-12,
+        "events<=0 run gives None efficiency, not inf/NaN":
+            eff["per_run"]["B"][seed_last]["efficiency"] is None,
+        "per-variant B total is still finite (its OTHER runs have events>0)":
+            abs(eff["per_variant"]["B"]["efficiency"] - (180.0 / 2000.0)) < 1e-12,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  global_efficiency_hand_computed: {sum(checks.values())}/{len(checks)} checks -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_cmd_analyze_end_to_end_categories_and_finiteness() -> bool:
+    scenario = _build_full_synthetic_scenario("end-to-end")
+    out_dir = scenario["base"] / "out"
+    args = argparse.Namespace(pilot_root=scenario["pilot_root"],
+                              prereg_dir=scenario["prereg_dir"], out_dir=out_dir)
+    rc = pre.cmd_analyze(args)
+
+    json_path = out_dir / "roi-resultados.json"
+    png_path = out_dir / "roi-resultados-mapas.png"
+    raw_text = json_path.read_text(encoding="utf-8")
+    report = json.loads(raw_text)
+    roi = report["roi_results"]
+
+    checks = {
+        "exit code 0": rc == 0,
+        "validation ok": report["validation"]["ok"] is True,
+        "no 'NaN' literal anywhere in the JSON text": "NaN" not in raw_text,
+        "no 'Infinity' literal anywhere in the JSON text": "Infinity" not in raw_text,
+        "PNG written and non-empty": png_path.exists() and png_path.stat().st_size > 0,
+        "R_int mean matches hand computation (25px * (2,3,4), mean=75)": abs(
+            roi["R_int"]["mean_diff_per_1e6_events"] - 75.0) < 1e-9,
+        "R_int sd matches hand computation (sd of 50,75,100 = 25)": abs(
+            roi["R_int"]["sd_between_replicates"] - 25.0) < 1e-9,
+        "R_int se matches hand computation": abs(
+            roi["R_int"]["se_observed_mean_3seeds"] - (25.0 / np.sqrt(3))) < 1e-9,
+        "R_int category is effect_present": roi["R_int"]["interpretation"]["category"] == "effect_present",
+        "R_cond category is inconclusive_insufficient_power":
+            roi["R_cond"]["interpretation"]["category"] == "inconclusive_insufficient_power",
+        "R_body category is null_adequate_power":
+            roi["R_body"]["interpretation"]["category"] == "null_adequate_power",
+        "at least two CONTRASTING categories among R_int/R_cond/R_body": len({
+            roi[r]["interpretation"]["category"] for r in ("R_int", "R_cond", "R_body")}) >= 2,
+        "R_rock sd is exactly 0.0 (common random numbers, no injected effect)":
+            roi["R_rock"]["sd_between_replicates"] == 0.0,
+        "R_sky sd is exactly 0.0": roi["R_sky"]["sd_between_replicates"] == 0.0,
+        "R_rock n_seeds_nonzero_diff is 0": roi["R_rock"]["n_seeds_nonzero_diff"] == 0,
+        "R_rock control check: compatible with zero":
+            roi["R_rock"]["control_check"]["compatible_with_zero"] is True,
+        "R_sky control check: compatible with zero":
+            roi["R_sky"]["control_check"]["compatible_with_zero"] is True,
+        "R_rock control check: no spurious difference":
+            roi["R_rock"]["control_check"]["spurious_difference_detected"] is False,
+        "R_int control_check is null (not a control ROI)": roi["R_int"]["control_check"] is None,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  cmd_analyze_end_to_end: R_int={roi['R_int']['interpretation']['category']} "
+         f"R_cond={roi['R_cond']['interpretation']['category']} "
+         f"R_body={roi['R_body']['interpretation']['category']} -> {'ok' if ok else 'FAIL'}")
+    return ok
+
+
+def test_cmd_analyze_is_deterministic() -> bool:
+    """Two independent runs of `analyze` on the SAME synthetic inputs must
+    produce identical JSON reports except for generated_utc and the
+    out-dir-derived output paths."""
+    scenario = _build_full_synthetic_scenario("determinism")
+    out_dir_1 = scenario["base"] / "out1"
+    out_dir_2 = scenario["base"] / "out2"
+
+    rc1 = pre.cmd_analyze(argparse.Namespace(pilot_root=scenario["pilot_root"],
+                                             prereg_dir=scenario["prereg_dir"], out_dir=out_dir_1))
+    rc2 = pre.cmd_analyze(argparse.Namespace(pilot_root=scenario["pilot_root"],
+                                             prereg_dir=scenario["prereg_dir"], out_dir=out_dir_2))
+
+    report1 = json.loads((out_dir_1 / "roi-resultados.json").read_text(encoding="utf-8"))
+    report2 = json.loads((out_dir_2 / "roi-resultados.json").read_text(encoding="utf-8"))
+
+    gen1 = report1["metadata"].pop("generated_utc")
+    gen2 = report2["metadata"].pop("generated_utc")
+    # out_dir differs between the two runs, so the paths embedding it
+    # legitimately differ too -- exclude those before comparing everything
+    # else, which must be byte-for-byte the same computed content.
+    report1["outputs"] = None
+    report2["outputs"] = None
+
+    checks = {
+        "both runs succeeded": rc1 == 0 and rc2 == 0,
+        "generated_utc was recorded both times": bool(gen1) and bool(gen2),
+        "reports are identical once generated_utc/out-dir paths are excluded": report1 == report2,
+    }
+    ok = all(checks.values())
+    for label, passed in checks.items():
+        if not passed:
+            print(f"    {label}: FAIL")
+    print(f"  cmd_analyze_is_deterministic: reports_equal={report1 == report2} -> "
+         f"{'ok' if ok else 'FAIL'}")
+    return ok
+
+
 def main() -> int:
     print("OE1 pilot ROI pre-registration -- self-verifying tests")
     results = {
@@ -722,6 +1316,25 @@ def main() -> int:
         "symmetry_gate_passes_on_single_step_flips": test_symmetry_gate_passes_on_single_step_flips(),
         "symmetry_gate_fails_on_non_step_difference": test_symmetry_gate_fails_on_non_step_difference(),
         "symmetry_gate_fails_when_flip_fraction_too_high": test_symmetry_gate_fails_when_flip_fraction_too_high(),
+        "load_pilot_hist_counts_rejects_bad_input": test_load_pilot_hist_counts_rejects_bad_input(),
+        "validate_pilot_tree_happy_path": test_validate_pilot_tree_happy_path(),
+        "validate_pilot_tree_catches_hist_meta_mismatch": test_validate_pilot_tree_catches_hist_meta_mismatch(),
+        "validate_pilot_tree_reports_wrong_events_as_warning_not_error":
+            test_validate_pilot_tree_reports_wrong_events_as_warning_not_error(),
+        "validate_pilot_tree_catches_seed_mismatch": test_validate_pilot_tree_catches_seed_mismatch(),
+        "validate_pilot_tree_catches_missing_run": test_validate_pilot_tree_catches_missing_run(),
+        "validate_pilot_tree_catches_inconsistent_meta_field":
+            test_validate_pilot_tree_catches_inconsistent_meta_field(),
+        "per_run_mask_counts_and_paired_differences_hand_computed":
+            test_per_run_mask_counts_and_paired_differences_hand_computed(),
+        "paired_differences_finite_when_a_equals_b_in_some_roi":
+            test_paired_differences_finite_when_a_equals_b_in_some_roi(),
+        "classify_interpretation_covers_section7_cases": test_classify_interpretation_covers_section7_cases(),
+        "control_spurious_difference_check": test_control_spurious_difference_check(),
+        "global_efficiency_hand_computed": test_global_efficiency_hand_computed(),
+        "cmd_analyze_end_to_end_categories_and_finiteness":
+            test_cmd_analyze_end_to_end_categories_and_finiteness(),
+        "cmd_analyze_is_deterministic": test_cmd_analyze_is_deterministic(),
     }
     passed = all(results.values())
     if not passed:

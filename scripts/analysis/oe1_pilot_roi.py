@@ -124,6 +124,31 @@ ROCK_CONTROL_MAX_ANOMALY_PATH_M = 1.0
 PILOT_EVENTS_PER_RUN = 1_000_000
 PILOT_N_SEEDS = 3
 
+# The 3 pilot seeds fixed by work unit U9's design (section 6, point 1:
+# "cada semilla (2026092801/02/03)") -- hardcoded, not discovered from the
+# filesystem, because the protocol fixes exactly these three before the
+# pilot runs; a folder for any other seed is out of scope for `analyze`.
+PILOT_SEEDS = (2026092801, 2026092802, 2026092803)
+
+# Variant directory names fixed by the pilot's own layout (PREREGISTRO_ROI.md
+# section 1): "original" = variant A (geometry as received by Geant4,
+# uncorrected); "corregida" = variant B (fix B1).
+PILOT_VARIANT_DIRS = {"A": "original", "B": "corregida"}
+
+# geo-train-06 view 0 is the only (geometry, view) pair this pilot and its
+# pre-registration cover.
+PILOT_GEOMETRY_ID = DEFAULT_GEOMETRY_ID
+PILOT_VIEW_INDEX = 0
+
+DEFAULT_PREREG_DIR = (REPO_ROOT / "muografia-documentada" / "objetivo-1" /
+                      "entregas" / "2026-09-29-geo-train-06" / "analisis")
+
+# Section 7's "2*SE" decision rule is an explicit, informal heuristic, not a
+# Student-t critical value (the section's own caveat: with 3 seeds, df=2, the
+# exact two-sided 95% critical value is ~4.303, not 2) -- named here exactly
+# as section 7 states it, not changed.
+INTERPRETATION_SE_MULTIPLIER = 2.0
+
 # Threshold (in Steiger z units, see steiger_z_dependent below) for the
 # orientation registration check: the gap between the true orientation's
 # correlation and a mirrored variant's must exceed this many standard errors
@@ -1848,6 +1873,675 @@ def cmd_registration_sum(args: argparse.Namespace) -> int:
     return 0
 
 
+
+# --------------------------------------------------------------- analyze (U9)
+# Pre-registered pilot analysis (work unit U9), implementing PREREGISTRO_ROI.md
+# sections 6 ("Plan de analisis fijado antes del piloto") and 7 ("Criterios de
+# interpretacion") EXACTLY as written, before any pilot data exists. This
+# subcommand does NOT re-derive the ROIs or the pre-registered expected
+# effect sizes -- it only reads the masks (roi-mascaras.npz) and the numbers
+# already committed by `preregister` (roi-preregistro.json), plus the
+# pilot's own raw Geant4 histograms, and applies the fixed comparison
+# procedure. No statistical test or threshold beyond sections 6-7 is added.
+#
+# Design fact (not this script's choice, the pilot's): variants A and B are
+# run with the SAME 3 seeds (common random numbers), so a paired difference
+# D_s = count_B,s - count_A,s can be EXACTLY 0.0 in every seed for an ROI
+# whose lines of sight never cross the conduit/body overlap region -- by
+# construction this is the expected outcome for at least R_rock/R_sky.
+# sd_between_replicates == 0.0 in that case is a correct value, not a
+# sentinel for missing data, and every ratio below that could divide by a
+# replicate SD/SE of 0 is guarded to return None (JSON null) rather than
+# NaN/Infinity. Section 7's own decision rule is, by its own explicit text
+# ("Sea SE el error estandar previsto de la media de 3 semillas, seccion
+# 4"), governed ONLY by the pre-registered se_predicted -- never by the
+# pilot's observed replicate SD/SE -- so classify_interpretation below is not
+# even given the observed SD/SE as a parameter: a zero replicate SD cannot,
+# by construction, turn a ROI's category "decisive" on its own. See
+# classify_interpretation and control_spurious_difference_check for where
+# each of the two distinct SEs (observed vs. predicted) is used, and why.
+
+REQUIRED_META_KEYS = ("events_transported", "detected_in_bins", "threads",
+                     "seed", "grid", "engine", "physics_note", "sampling")
+
+# Meta.json fields that must be IDENTICAL across all 6 pilot runs (both
+# variants, all 3 seeds): same simulation configuration throughout: only the
+# geometry variant and the resulting counts may differ between runs.
+CONSISTENT_META_KEYS = ("grid", "threads", "physics_note", "sampling", "engine")
+
+
+def pilot_run_paths(pilot_root: Path, variant_key: str, seed: int) -> dict:
+    """Paths for one (variant, seed) pilot run, per the fixed layout produced
+    by herramientas/ejecutar_piloto_oe1.sbatch: <pilot-root>/<variant_dir>/
+    <seed>/geo-train-06_view0_hist.csv and .../geo-train-06_view0.meta.json."""
+    run_dir = pilot_root / PILOT_VARIANT_DIRS[variant_key] / str(seed)
+    stem = f"{PILOT_GEOMETRY_ID}_view{PILOT_VIEW_INDEX}"
+    return {"dir": run_dir, "hist": run_dir / f"{stem}_hist.csv",
+            "meta": run_dir / f"{stem}.meta.json"}
+
+
+def load_pilot_hist_counts(path: Path) -> np.ndarray:
+    """load_campaign_hist's (N_EL, N_AZ) shape check, plus the additional
+    non-negative/integer checks a raw Geant4 event count matrix must satisfy
+    (this subcommand's own input-validation contract, item 1)."""
+    counts = load_campaign_hist(path)
+    if not np.all(np.isfinite(counts)):
+        raise ValueError(f"pilot histogram {path} contains non-finite values")
+    if np.any(counts < 0.0):
+        raise ValueError(f"pilot histogram {path} contains negative counts")
+    if not np.array_equal(counts, np.round(counts)):
+        raise ValueError(f"pilot histogram {path} contains non-integer counts")
+    return counts
+
+
+def load_and_validate_pilot_tree(pilot_root: Path) -> dict:
+    """Load the 6 pilot runs (2 variants x 3 seeds) and check every input
+    validation rule `analyze` is responsible for:
+      - all 6 runs present (hist + meta.json);
+      - each hist is 256x256 non-negative integers;
+      - hist sum == meta detected_in_bins;
+      - events_transported == PILOT_EVENTS_PER_RUN -- REPORTED as a warning,
+        not fatal, if it differs: a real Geant4 run may transport a slightly
+        different count than the design value without that being a data
+        integrity bug, unlike every other check here;
+      - events_transported > 0 -- fatal: a run that transported zero events
+        makes the per-1e6-events normalisation undefined, which is a broken
+        run, not merely "a different number than expected";
+      - grid/threads/physics_note/sampling/engine identical across all 6 runs;
+      - the seed recorded in meta.json matches the seed implied by the run's
+        own directory name.
+
+    Every problem found is collected (not just the first), so one failing
+    run does not hide problems with the others. Returns {"runs": {...},
+    "errors": [...], "warnings": [...]}; "runs" holds whatever was
+    successfully loaded even when "errors" is non-empty, so a caller (or a
+    test) can inspect exactly what was found.
+    """
+    errors: list = []
+    warnings: list = []
+    runs: dict = {"A": {}, "B": {}}
+    reference_meta: dict | None = None
+    reference_run_label: str | None = None
+
+    for variant_key in ("A", "B"):
+        for seed in PILOT_SEEDS:
+            paths = pilot_run_paths(pilot_root, variant_key, seed)
+            run_label = f"{PILOT_VARIANT_DIRS[variant_key]}/{seed}"
+
+            if not paths["hist"].exists() or not paths["meta"].exists():
+                missing = [str(p) for p in (paths["hist"], paths["meta"]) if not p.exists()]
+                errors.append(f"{run_label}: missing input file(s): {', '.join(missing)}")
+                continue
+
+            try:
+                hist = load_pilot_hist_counts(paths["hist"])
+            except ValueError as exc:
+                errors.append(f"{run_label}: {exc}")
+                continue
+
+            try:
+                meta = json.loads(paths["meta"].read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                errors.append(f"{run_label}: cannot read/parse {paths['meta']}: {exc}")
+                continue
+
+            missing_keys = [k for k in REQUIRED_META_KEYS if k not in meta]
+            if missing_keys:
+                errors.append(f"{run_label}: {paths['meta']} is missing required "
+                              f"key(s): {', '.join(missing_keys)}")
+                continue
+
+            hist_sum = int(round(float(hist.sum())))
+            detected = int(meta["detected_in_bins"])
+            if hist_sum != detected:
+                errors.append(f"{run_label}: histogram sum ({hist_sum}) does not match "
+                              f"meta.json detected_in_bins ({detected})")
+
+            events = int(meta["events_transported"])
+            if events <= 0:
+                errors.append(f"{run_label}: events_transported is non-positive ({events})")
+            elif events != PILOT_EVENTS_PER_RUN:
+                warnings.append(f"{run_label}: events_transported = {events}, expected "
+                                f"{PILOT_EVENTS_PER_RUN} (reported, not treated as a data "
+                                "integrity failure)")
+
+            seed_in_meta = int(meta["seed"])
+            if seed_in_meta != seed:
+                errors.append(f"{run_label}: meta.json seed ({seed_in_meta}) does not "
+                              f"match the run directory's own seed ({seed})")
+
+            if reference_meta is None:
+                reference_meta = meta
+                reference_run_label = run_label
+            else:
+                for key in CONSISTENT_META_KEYS:
+                    if meta.get(key) != reference_meta.get(key):
+                        errors.append(f"{run_label}: meta.json field {key!r} differs from "
+                                      f"{reference_run_label} ({meta.get(key)!r} vs "
+                                      f"{reference_meta.get(key)!r})")
+
+            runs[variant_key][seed] = {
+                "hist": hist,
+                "hist_path": paths["hist"], "meta_path": paths["meta"],
+                "hist_sha256": sha256_of(paths["hist"]),
+                "meta_sha256": sha256_of(paths["meta"]),
+                "events_transported": events,
+                "detected_in_bins": detected,
+                "hist_sum": hist_sum,
+                "seed_in_meta": seed_in_meta,
+            }
+
+    return {"runs": runs, "errors": errors, "warnings": warnings}
+
+
+def per_run_mask_counts(runs: dict, masks: dict) -> dict:
+    """Section 6, point 1: per ROI, per variant, per seed -- the raw count
+    inside the mask and its per-1e6-events normalisation, using each run's
+    OWN events_transported (kept on the same basis as the pre-registered
+    Delta_max/SE even if a real run does not hit exactly
+    PILOT_EVENTS_PER_RUN; see load_and_validate_pilot_tree's warning for
+    that case). A run with events_transported <= 0 yields
+    count_per_1e6_events = None, never inf/NaN -- defence in depth only:
+    load_and_validate_pilot_tree already treats that as fatal, so this
+    branch should not be reached from cmd_analyze, but this function must
+    not crash if it ever is (e.g. called directly, as the tests do)."""
+    result = {}
+    for roi_name, mask in masks.items():
+        result[roi_name] = {"A": {}, "B": {}}
+        for variant_key in ("A", "B"):
+            for seed in PILOT_SEEDS:
+                run = runs[variant_key][seed]
+                raw = float(run["hist"][mask].sum())
+                events = run["events_transported"]
+                per_1e6 = (raw * (PILOT_EVENTS_PER_RUN / events)) if events > 0 else None
+                result[roi_name][variant_key][seed] = {
+                    "count_raw": raw,
+                    "events_transported": events,
+                    "count_per_1e6_events": per_1e6,
+                }
+    return result
+
+
+def paired_differences(mask_counts: dict) -> dict:
+    """Section 6, points 2-3, for every ROI: the paired B-A difference per
+    seed (per 1e6 events; sign: negative if B/the fix reduces the count
+    relative to what was received, consistent with Delta_max's sign in
+    section 4), their mean, the sample standard deviation BETWEEN the 3
+    replicate seeds (ddof=1 -- "desviacion estandar entre replicas") and the
+    standard error of that mean (SD / sqrt(PILOT_N_SEEDS), exactly as point 3
+    states -- dividing by the FIXED sqrt(3), never by the replicate SD/SE
+    itself, so this never produces inf/NaN). Also records how many of the 3
+    seeds have a nonzero paired difference: D_s == 0.0 exactly is the
+    expected, correct outcome (not a missing-data marker) for an ROI whose
+    lines of sight never cross where A and B differ, given A/B share seeds
+    (see the module docstring above).
+
+    If a seed's per_1e6_events count could not be computed (see
+    per_run_mask_counts; unreachable via cmd_analyze, whose validation is
+    fatal on that condition), this ROI's observed statistics are reported as
+    None rather than silently averaging over fewer than 3 seeds -- section 6
+    never defines a partial-seed procedure -- or raising."""
+    result = {}
+    for roi_name, per_variant in mask_counts.items():
+        per_seed_diff = {}
+        for seed in PILOT_SEEDS:
+            a = per_variant["A"][seed]["count_per_1e6_events"]
+            b = per_variant["B"][seed]["count_per_1e6_events"]
+            per_seed_diff[seed] = (b - a) if (a is not None and b is not None) else None
+
+        if any(d is None for d in per_seed_diff.values()):
+            result[roi_name] = {
+                "per_seed_diff_per_1e6_events": {str(s): per_seed_diff[s] for s in PILOT_SEEDS},
+                "mean_diff_per_1e6_events": None,
+                "sd_between_replicates": None,
+                "se_observed_mean_3seeds": None,
+                "n_seeds_nonzero_diff": None,
+            }
+            continue
+
+        values = np.array([per_seed_diff[s] for s in PILOT_SEEDS], dtype=np.float64)
+        mean_diff = float(values.mean())
+        sd_diff = float(values.std(ddof=1))
+        se_observed = float(sd_diff / np.sqrt(PILOT_N_SEEDS))
+        n_nonzero = int(np.count_nonzero(values != 0.0))
+
+        result[roi_name] = {
+            "per_seed_diff_per_1e6_events": {str(s): float(per_seed_diff[s]) for s in PILOT_SEEDS},
+            "mean_diff_per_1e6_events": mean_diff,
+            "sd_between_replicates": sd_diff,
+            "se_observed_mean_3seeds": se_observed,
+            "n_seeds_nonzero_diff": n_nonzero,
+        }
+    return result
+
+
+def classify_interpretation(delta_max: float, se_predicted: float, mean_diff) -> dict:
+    """PREREGISTRO_ROI.md section 7's four-way, pre-stated partition of the
+    possible pilot outcomes for one ROI, applied literally and identically to
+    all five ROIs (including R_rock/R_sky, whose delta_max == 0.0 exactly --
+    see below for why that always resolves to case 1, and
+    control_spurious_difference_check for the SEPARATE, control-only check of
+    section 6 point 5).
+
+    SE here is, by section 7's own explicit definition ("el error estandar
+    previsto de la media de 3 semillas, seccion 4"), the PRE-REGISTERED
+    se_predicted -- never the pilot's observed replicate SD/SE. This function
+    does not even take the observed SD/SE as a parameter, so a replicate SD
+    of exactly 0.0 (expected for R_rock/R_sky under common random numbers;
+    see paired_differences) cannot influence this category by construction --
+    it is se_predicted, a fixed number already in roi-preregistro.json before
+    the pilot ran, that decides case 1 vs. 2/3/4 below, exactly as section 7
+    states.
+
+    Literal-reading choice (case 4, "discordant"): section 7's case 4 also
+    allows a mismatch of pure MAGNITUDE ("o la magnitud de D NO son
+    compatibles con Delta_max, p. ej. ... |D| muy por encima de |Delta_max|"),
+    but -- unlike every other boundary in sections 6-7 -- gives no numeric
+    threshold for "muy por encima" ("far above"); inventing one would violate
+    the instruction to add no new threshold. Case 2 vs. case 4 is therefore
+    classified using ONLY the sign test, the sole quantitatively defined
+    criterion in the text; the |D|/|Delta_max| ratio is reported alongside so
+    a reader can apply the qualitative magnitude check by eye, exactly as
+    section 7's own prose does, without this function silently deciding it.
+
+    `mean_diff` may be None (see paired_differences; unreachable via
+    cmd_analyze but guarded here too) -- returns category "not_computable"
+    rather than raising or emitting NaN/Infinity.
+    """
+    abs_delta_max = abs(float(delta_max))
+    se_predicted = float(se_predicted)
+    ratio_se_over_delta_max = (abs_delta_max / se_predicted) if se_predicted > 0.0 else None
+
+    if mean_diff is None:
+        return {
+            "category": "not_computable",
+            "category_label": "Observed mean difference could not be computed "
+                              "(see paired_differences); not one of section 7's four cases.",
+            "se_predicted_mean_3seeds": se_predicted,
+            "delta_max": float(delta_max),
+            "mean_diff_per_1e6_events": None,
+            "two_se_predicted": float(INTERPRETATION_SE_MULTIPLIER * se_predicted),
+            "abs_delta_max_over_se_predicted": ratio_se_over_delta_max,
+            "abs_mean_diff_over_abs_delta_max": None,
+            "sign_matches_delta_max": None,
+        }
+
+    mean_diff = float(mean_diff)
+    abs_mean_diff = abs(mean_diff)
+    two_se = float(INTERPRETATION_SE_MULTIPLIER * se_predicted)
+    ratio_diff_over_delta_max = (abs_mean_diff / abs_delta_max) if abs_delta_max > 0.0 else None
+
+    if se_predicted > abs_delta_max:
+        category = "inconclusive_insufficient_power"
+        label = ("Inconclusive: the pre-registered SE exceeds |Delta_max| -- the planned "
+                "statistics cannot separate 0 from Delta_max in this ROI; NOT evidence "
+                "that A and B are equivalent (PREREGISTRO_ROI.md section 7, case 1).")
+        sign_matches = None
+    elif abs_mean_diff <= two_se:
+        category = "null_adequate_power"
+        label = ("Null result with adequate power: SE <= |Delta_max| and |D| <= 2*SE. "
+                "Reported as 'no evidence of an effect in this ROI', NOT as proof of no "
+                "effect (PREREGISTRO_ROI.md section 7, case 3).")
+        sign_matches = None
+    else:
+        sign_matches = bool((mean_diff > 0.0) == (delta_max > 0.0)) if delta_max != 0.0 else False
+        if sign_matches:
+            category = "effect_present"
+            label = ("Consistent with the overlap material affecting the detected count "
+                    "in the expected direction (PREREGISTRO_ROI.md section 7, case 2).")
+        else:
+            category = "discordant"
+            label = ("Discordant with the overlap hypothesis (wrong sign, or -- by "
+                    "inspection of the reported ratio below -- a magnitude far from "
+                    "Delta_max); requires further investigation before any conclusion "
+                    "(PREREGISTRO_ROI.md section 7, case 4).")
+
+    return {
+        "category": category,
+        "category_label": label,
+        "se_predicted_mean_3seeds": se_predicted,
+        "delta_max": float(delta_max),
+        "mean_diff_per_1e6_events": mean_diff,
+        "two_se_predicted": two_se,
+        "abs_delta_max_over_se_predicted": ratio_se_over_delta_max,
+        "abs_mean_diff_over_abs_delta_max": ratio_diff_over_delta_max,
+        "sign_matches_delta_max": sign_matches,
+    }
+
+
+def control_spurious_difference_check(mean_diff, se_observed) -> dict:
+    """Section 6, point 5, for the R_rock / R_sky controls ONLY: the paired
+    mean difference must be compatible with 0 WITHIN ITS OWN standard error.
+
+    Literal-reading choice: "su propio error estandar" immediately follows
+    point 3's computation of the OBSERVED SE (SD/sqrt(3)) from this ROI's own
+    3 replicates, and point 5 makes no cross-reference to section 4 the way
+    point 4 explicitly does -- so "its own SE" is read here as the OBSERVED
+    se_observed_mean_3seeds, not the pre-registered se_predicted. No "2x"
+    multiplier is applied: section 7 introduces that heuristic explicitly and
+    separately for R_int/R_cond/R_body; point 5 only says "within its own
+    standard error".
+
+    se_observed == 0.0 exactly is an expected, correct value here (common
+    random numbers between A and B; see the module docstring) and is NOT
+    treated as "infinite precision": the check below is a plain inequality,
+    never a division by se_observed, so a zero SD together with a zero
+    observed mean difference (A and B truly agree in this ROI, every seed)
+    correctly evaluates to "compatible with zero", and a zero SD together
+    with a NONZERO observed mean difference (all 3 replicates agreeing
+    exactly on a nonzero shift) correctly evaluates to "not compatible" --
+    both without any inf/NaN.
+    """
+    if mean_diff is None or se_observed is None:
+        return {
+            "mean_diff_per_1e6_events": None, "se_observed_mean_3seeds": None,
+            "compatible_with_zero": None, "spurious_difference_detected": None,
+        }
+    mean_diff = float(mean_diff)
+    se_observed = float(se_observed)
+    compatible = bool(abs(mean_diff) <= se_observed)
+    return {
+        "mean_diff_per_1e6_events": mean_diff,
+        "se_observed_mean_3seeds": se_observed,
+        "compatible_with_zero": compatible,
+        "spurious_difference_detected": not compatible,
+    }
+
+
+def global_efficiency(runs: dict) -> dict:
+    """Global efficiency (detected_in_bins / events_transported) per run and
+    per variant. None (never inf/NaN) if events_transported <= 0 for a run
+    (defence in depth; fatal in load_and_validate_pilot_tree)."""
+    per_run: dict = {"A": {}, "B": {}}
+    per_variant: dict = {}
+    for variant_key in ("A", "B"):
+        total_detected = 0
+        total_events = 0
+        for seed in PILOT_SEEDS:
+            run = runs[variant_key][seed]
+            detected = run["detected_in_bins"]
+            events = run["events_transported"]
+            per_run[variant_key][seed] = {
+                "detected_in_bins": detected, "events_transported": events,
+                "efficiency": (detected / events) if events > 0 else None,
+            }
+            total_detected += detected
+            total_events += events
+        per_variant[variant_key] = {
+            "detected_in_bins_total": total_detected,
+            "events_transported_total": total_events,
+            "efficiency": (total_detected / total_events) if total_events > 0 else None,
+        }
+    return {"per_run": per_run, "per_variant": per_variant}
+
+
+def plot_pilot_maps(out_path: Path, runs: dict, masks: dict) -> None:
+    """Section 6, point 6: per-variant maps normalised per event (A, B) and
+    the signed difference map (B - A), per seed and for the mean across
+    seeds, with the five ROI contours overlaid (same contour convention as
+    plot_preregistration). Deterministic: a pure function of the loaded
+    pilot histograms and the pre-registered masks, no randomness.
+
+    Does NOT call watermark_surrogate: unlike every other figure in this
+    script, this one plots actual Geant4 pilot histograms, not surrogate
+    model output, so the surrogate provenance mark (which states "no
+    Geant4") would misrepresent the data source.
+    """
+    apply_style()
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
+    az, el = angular_grid()
+    az_half_deg = float(np.rad2deg(az[-1]))
+    el_min_deg, el_max_deg = float(np.rad2deg(el[0])), float(np.rad2deg(el[-1]))
+    extent = [-az_half_deg, az_half_deg, el_min_deg, el_max_deg]
+
+    per_event = {"A": {}, "B": {}}
+    for variant_key in ("A", "B"):
+        for seed in PILOT_SEEDS:
+            run = runs[variant_key][seed]
+            per_event[variant_key][seed] = run["hist"] / run["events_transported"]
+
+    mean_a = np.mean([per_event["A"][s] for s in PILOT_SEEDS], axis=0)
+    mean_b = np.mean([per_event["B"][s] for s in PILOT_SEEDS], axis=0)
+
+    rows = list(PILOT_SEEDS) + ["mean"]
+    a_maps = {**per_event["A"], "mean": mean_a}
+    b_maps = {**per_event["B"], "mean": mean_b}
+    diff_maps = {s: per_event["B"][s] - per_event["A"][s] for s in PILOT_SEEDS}
+    diff_maps["mean"] = mean_b - mean_a
+
+    # Counts per 1e6 events (matching roi-preregistro.json's own basis) on a
+    # shared log1p scale for the A/B panels, and a shared symmetric diverging
+    # scale for the difference panels, so seeds and the mean are visually
+    # comparable across the whole figure.
+    scale = float(PILOT_EVENTS_PER_RUN)
+    ab_stack = np.concatenate([np.log1p(a_maps[r] * scale) for r in rows] +
+                              [np.log1p(b_maps[r] * scale) for r in rows])
+    vmax_ab = float(np.max(ab_stack)) if ab_stack.size else 1.0
+    diff_stack = np.concatenate([diff_maps[r] * scale for r in rows])
+    finite_diff = diff_stack[np.isfinite(diff_stack)]
+    vmax_diff = max(float(np.percentile(np.abs(finite_diff), 99)) if finite_diff.size else 1.0, 1e-9)
+
+    colors = {"R_int": "#d62728", "R_cond": "#ff7f0e", "R_body": "#9467bd",
+             "R_rock": "#2ca02c", "R_sky": "#1f77b4"}
+    draw_order = ["R_cond", "R_body", "R_rock", "R_sky", "R_int"]
+    linewidths = {"R_int": 2.0}
+    zorders = {"R_int": 5}
+
+    def _contours(ax) -> None:
+        for name in draw_order:
+            mask = masks[name]
+            if not mask.any():
+                continue
+            ax.contour(mask.astype(float), levels=[0.5], colors=[colors[name]],
+                      extent=extent, linewidths=linewidths.get(name, 1.0),
+                      zorder=zorders.get(name, 1))
+
+    fig, axes = plt.subplots(len(rows), 3, figsize=(13.5, 3.3 * len(rows)), squeeze=False)
+    im_ab = im_diff = None
+    for i, row_key in enumerate(rows):
+        row_label = f"semilla {row_key}" if row_key != "mean" else "media (3 semillas)"
+        for j, (title, field) in enumerate([
+                (f"A (recibida) -- {row_label}", a_maps[row_key]),
+                (f"B (correccion B1) -- {row_label}", b_maps[row_key])]):
+            ax = axes[i, j]
+            im_ab = ax.imshow(np.log1p(field * scale), origin="lower", aspect="auto",
+                             extent=extent, cmap="viridis", vmin=0.0, vmax=vmax_ab)
+            ax.set_title(title, fontsize=9)
+            _contours(ax)
+            ax.grid(False)
+        im_diff = axes[i, 2].imshow(diff_maps[row_key] * scale, origin="lower", aspect="auto",
+                                   extent=extent, cmap="RdBu_r", vmin=-vmax_diff, vmax=vmax_diff)
+        axes[i, 2].set_title(f"B - A -- {row_label}", fontsize=9)
+        _contours(axes[i, 2])
+        axes[i, 2].grid(False)
+        for ax in axes[i]:
+            ax.set_xlabel("Azimut relativo [°]")
+        axes[i, 0].set_ylabel("Elevación [°]")
+
+    handles = [Patch(facecolor="none", edgecolor=colors[n], label=n) for n in colors]
+    fig.legend(handles=handles, loc="lower center", ncol=5, bbox_to_anchor=(0.5, -0.01))
+    fig.colorbar(im_ab, ax=list(axes[:, :2].ravel()), shrink=0.6,
+                label="log(1 + cuentas por 10^6 eventos)")
+    fig.colorbar(im_diff, ax=list(axes[:, 2].ravel()), shrink=0.6,
+                label="B - A (cuentas por 10^6 eventos)")
+    fig.suptitle(f"Piloto OE1 -- {PILOT_GEOMETRY_ID} vista {PILOT_VIEW_INDEX}: mapas por "
+                f"variante y diferencia firmada, con ROI pre-registradas")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path)
+    plt.close(fig)
+
+
+def cmd_analyze(args: argparse.Namespace) -> int:
+    pilot_root: Path = args.pilot_root
+    prereg_dir: Path = args.prereg_dir
+    out_dir: Path = args.out_dir
+
+    prereg_json_path = prereg_dir / "roi-preregistro.json"
+    masks_npz_path = prereg_dir / "roi-mascaras.npz"
+    if not prereg_json_path.exists():
+        print(f"ERROR: pre-registration report not found: {prereg_json_path}", file=sys.stderr)
+        return 1
+    if not masks_npz_path.exists():
+        print(f"ERROR: pre-registered ROI masks not found: {masks_npz_path}", file=sys.stderr)
+        return 1
+
+    prereg = json.loads(prereg_json_path.read_text(encoding="utf-8"))
+    with np.load(masks_npz_path) as masks_npz:
+        masks = {name: masks_npz[name].astype(bool)
+                 for name in ("R_int", "R_cond", "R_body", "R_rock", "R_sky")}
+
+    loaded = load_and_validate_pilot_tree(pilot_root)
+    if loaded["errors"]:
+        print("PILOT INPUT VALIDATION FAILED:", file=sys.stderr)
+        for err in loaded["errors"]:
+            print(f"  - {err}", file=sys.stderr)
+        return 1
+    for warn in loaded["warnings"]:
+        print(f"WARNING: {warn}", file=sys.stderr)
+    runs = loaded["runs"]
+
+    mask_counts = per_run_mask_counts(runs, masks)
+    diffs = paired_differences(mask_counts)
+    efficiency = global_efficiency(runs)
+
+    roi_names = ("R_int", "R_cond", "R_body", "R_rock", "R_sky")
+    roi_results = {}
+    for roi_name in roi_names:
+        prereg_row = prereg["roi_effect_table"][roi_name]
+        se_predicted = float(prereg_row["predicted_se_mean_3seeds"])
+        delta_max = float(prereg_row["delta_max_b1_minus_conduit_wins"])
+        mean_diff = diffs[roi_name]["mean_diff_per_1e6_events"]
+        interpretation = classify_interpretation(delta_max, se_predicted, mean_diff)
+
+        control_check = None
+        if roi_name in ("R_rock", "R_sky"):
+            control_check = control_spurious_difference_check(
+                mean_diff, diffs[roi_name]["se_observed_mean_3seeds"])
+
+        roi_results[roi_name] = {
+            "n_pixels": prereg["pixel_counts"][roi_name],
+            "per_seed": {
+                str(seed): {
+                    "count_a_raw": mask_counts[roi_name]["A"][seed]["count_raw"],
+                    "count_b_raw": mask_counts[roi_name]["B"][seed]["count_raw"],
+                    "events_transported_a": mask_counts[roi_name]["A"][seed]["events_transported"],
+                    "events_transported_b": mask_counts[roi_name]["B"][seed]["events_transported"],
+                    "count_a_per_1e6_events": mask_counts[roi_name]["A"][seed]["count_per_1e6_events"],
+                    "count_b_per_1e6_events": mask_counts[roi_name]["B"][seed]["count_per_1e6_events"],
+                    "diff_b_minus_a_per_1e6_events":
+                        diffs[roi_name]["per_seed_diff_per_1e6_events"][str(seed)],
+                }
+                for seed in PILOT_SEEDS
+            },
+            "mean_diff_per_1e6_events": diffs[roi_name]["mean_diff_per_1e6_events"],
+            "sd_between_replicates": diffs[roi_name]["sd_between_replicates"],
+            "se_observed_mean_3seeds": diffs[roi_name]["se_observed_mean_3seeds"],
+            "n_seeds_nonzero_diff": diffs[roi_name]["n_seeds_nonzero_diff"],
+            "prereg_reference": {
+                "expected_b1_per_1e6_events": prereg_row["expected_b1_per_1e6_events"],
+                "expected_conduit_wins_per_1e6_events": prereg_row["expected_conduit_wins_per_1e6_events"],
+                "delta_max_b1_minus_conduit_wins": delta_max,
+                "poisson_se_per_run": prereg_row["poisson_se_per_run"],
+                "predicted_se_mean_3seeds": se_predicted,
+            },
+            "interpretation": interpretation,
+            "control_check": control_check,
+        }
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    png_path = out_dir / "roi-resultados-mapas.png"
+    plot_pilot_maps(png_path, runs, masks)
+
+    input_hashes = {
+        "prereg_json": {"path": rel_path_str(prereg_json_path), "sha256": sha256_of(prereg_json_path)},
+        "masks_npz": {"path": rel_path_str(masks_npz_path), "sha256": sha256_of(masks_npz_path)},
+        "runs": {
+            PILOT_VARIANT_DIRS[variant_key]: {
+                str(seed): {
+                    "hist": {"path": rel_path_str(runs[variant_key][seed]["hist_path"]),
+                             "sha256": runs[variant_key][seed]["hist_sha256"]},
+                    "meta": {"path": rel_path_str(runs[variant_key][seed]["meta_path"]),
+                             "sha256": runs[variant_key][seed]["meta_sha256"]},
+                }
+                for seed in PILOT_SEEDS
+            }
+            for variant_key in ("A", "B")
+        },
+    }
+
+    json_path = out_dir / "roi-resultados.json"
+    report = {
+        "metadata": {
+            "generated_utc": datetime.now(timezone.utc).isoformat(),
+            "python": sys.version.split()[0],
+            "numpy": np.__version__,
+            "script_sha256": sha256_of(Path(__file__)),
+            "pilot_root": rel_path_str(pilot_root),
+            "prereg_dir": rel_path_str(prereg_dir),
+            "geometry_id": PILOT_GEOMETRY_ID, "view": PILOT_VIEW_INDEX,
+            "seeds": list(PILOT_SEEDS),
+            "variants": dict(PILOT_VARIANT_DIRS),
+            "pilot_events_per_run_design": PILOT_EVENTS_PER_RUN,
+            "pilot_n_seeds": PILOT_N_SEEDS,
+            "interpretation_se_multiplier": INTERPRETATION_SE_MULTIPLIER,
+        },
+        "definitions": {
+            "count_per_1e6_events": "raw mask count in a run, scaled by "
+                "PILOT_EVENTS_PER_RUN / that run's own events_transported "
+                "(PREREGISTRO_ROI.md section 6, point 1).",
+            "diff_b_minus_a_per_1e6_events": "D_s = count_B,s - count_A,s per seed, per "
+                "1e6 events (section 6, point 2).",
+            "sd_between_replicates": "sample standard deviation (ddof=1) of the 3 seeds' "
+                "D_s (section 6, point 3). Can be exactly 0.0 -- see the module docstring.",
+            "se_observed_mean_3seeds": "sd_between_replicates / sqrt(3) (section 6, point 3); "
+                "used ONLY by control_check below, never by interpretation.category.",
+            "poisson_se_per_run": "pre-registered, PREDICTED standard error from "
+                "roi-preregistro.json (section 4); read and reported here, not recomputed.",
+            "predicted_se_mean_3seeds": "pre-registered, PREDICTED SE of the 3-seed mean "
+                "from roi-preregistro.json (section 4); this is the 'SE' section 7's "
+                "interpretation.category rule refers to.",
+            "interpretation.category": "one of inconclusive_insufficient_power, "
+                "null_adequate_power, effect_present, discordant -- exactly as "
+                "PREREGISTRO_ROI.md section 7 defines them; governed by "
+                "predicted_se_mean_3seeds ONLY, never by sd_between_replicates/"
+                "se_observed_mean_3seeds (see classify_interpretation).",
+            "control_check": "section 6, point 5's spurious-difference check, R_rock/R_sky "
+                "only: mean_diff compatible with 0 within se_observed_mean_3seeds (null for "
+                "R_int/R_cond/R_body, where point 5 does not apply).",
+        },
+        "validation": {
+            "ok": len(loaded["errors"]) == 0,
+            "errors": loaded["errors"],
+            "warnings": loaded["warnings"],
+        },
+        "input_hashes": input_hashes,
+        "global_efficiency": efficiency,
+        "roi_results": roi_results,
+        "outputs": {"figure_png": rel_path_str(png_path), "results_json": rel_path_str(json_path)},
+    }
+
+    write_text_lf(json_path, json.dumps(report, indent=2, default=str) + "\n")
+
+    print(f"OE1 pilot analysis (work unit U9) -- {PILOT_GEOMETRY_ID} view {PILOT_VIEW_INDEX}")
+    print(f"pilot root: {pilot_root}")
+    if loaded["warnings"]:
+        print(f"{len(loaded['warnings'])} warning(s) -- see roi-resultados.json validation.warnings")
+    for roi_name in roi_names:
+        row = roi_results[roi_name]
+        interp = row["interpretation"]
+        print(f"  {roi_name}: mean_D={row['mean_diff_per_1e6_events']} "
+             f"SD={row['sd_between_replicates']} SE_obs={row['se_observed_mean_3seeds']} "
+             f"nonzero_seeds={row['n_seeds_nonzero_diff']}/{PILOT_N_SEEDS} -> {interp['category']}")
+        if row["control_check"] is not None:
+            print(f"    control check: compatible_with_zero="
+                 f"{row['control_check']['compatible_with_zero']}")
+    print(f"wrote {png_path}")
+    print(f"wrote {json_path}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1911,6 +2605,22 @@ def main() -> int:
     regsum.add_argument("--out-dir", type=Path, required=True,
                         help="directory to write registro-orientacion-suma.json/.png")
 
+    ana = sub.add_parser("analyze",
+                        help="pre-registered pilot analysis (work unit U9): compare "
+                             "variant A (received geometry) against variant B (fix B1) "
+                             "using the ROIs and expected effect sizes 'preregister' "
+                             "already committed, per PREREGISTRO_ROI.md sections 6-7")
+    ana.add_argument("--pilot-root", type=Path, required=True,
+                     help="root of the pilot run tree written by "
+                          "herramientas/ejecutar_piloto_oe1.sbatch "
+                          "(<pilot-root>/original/<seed>/ and <pilot-root>/corregida/<seed>/, "
+                          "seeds 2026092801/02/03)")
+    ana.add_argument("--prereg-dir", type=Path, default=DEFAULT_PREREG_DIR,
+                     help="directory containing roi-preregistro.json and roi-mascaras.npz "
+                          "written by 'preregister' (default: %(default)s)")
+    ana.add_argument("--out-dir", type=Path, required=True,
+                     help="directory to write roi-resultados.json and roi-resultados-mapas.png")
+
     args = ap.parse_args()
     if args.command == "preregister":
         return cmd_preregister(args)
@@ -1918,6 +2628,8 @@ def main() -> int:
         return cmd_registration(args)
     if args.command == "registration-sum":
         return cmd_registration_sum(args)
+    if args.command == "analyze":
+        return cmd_analyze(args)
     ap.error(f"unknown command {args.command!r}")
     return 2
 
