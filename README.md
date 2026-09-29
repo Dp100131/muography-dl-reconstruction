@@ -24,7 +24,7 @@ Código y resultados del trabajo de grado **"Reconstrucción muográfica por tra
 
 Los datos binarios (shards del dataset, campaña Geant4 cruda, checkpoints y logs SLURM) no se versionan en Git. Están disponibles en:
 
-**Enlace:** ENLACE_DRIVE_PENDIENTE
+**Enlace:** <https://drive.google.com/drive/folders/1pYpfEOt1tkg9aLmRyut8_1ls-VgKKvz_?usp=sharing>
 
 El paquete descargado sigue la misma jerarquía que la raíz del repositorio: cada carpeta de nivel superior se coloca directamente sobre la carpeta homónima ignorada por `.gitignore` (`dataset/`, `data/`, `runs/`, `logs/`).
 
@@ -147,7 +147,7 @@ El documento se incluye textual, tal como se congeló antes del pase de prueba, 
 | `model/weights-manifest*.json` | `models/weights-manifest*.json` |
 | `docs/protocol/protocol_thresholds.json` | `results/evaluation/protocol_thresholds.json` |
 | `evaluation/dryrun-artifacts/…` | `results/evaluation/fragments/…` y `results/evaluation/*.json` |
-| `docs/reports/…`, `docs/planning/…`, `docs/actas/…`, `protocol-v1.0.md` | Documentos del informe de tesis; no se incluyen en este repositorio |
+| `docs/reports/…`, `docs/planning/…`, `protocol-v1.0.md` | Documentos del informe de tesis; no se incluyen en este repositorio |
 
 ## Cita
 
