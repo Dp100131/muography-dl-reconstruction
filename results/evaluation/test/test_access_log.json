@@ -1,0 +1,79 @@
+[
+  {
+    "event": "open",
+    "access_id": "20260906T002025261640Z-662661",
+    "utc": "2026-09-06T00:20:25+00:00",
+    "git_commit": "unknown",
+    "argv": [
+      "evaluation/run_evaluation.py",
+      "--split",
+      "test",
+      "--out-root",
+      "runs/e20-cache",
+      "--runs-root",
+      "runs",
+      "--device",
+      "cuda"
+    ],
+    "host": "felix.sc3.uis.edu.co",
+    "slurm_job_id": "29819",
+    "user": "user"
+  },
+  {
+    "event": "close",
+    "opened_by": "open",
+    "access_id": "20260906T002025261640Z-662661",
+    "utc": "2026-09-06T00:45:17+00:00",
+    "shards_read": {
+      "geo-gen-01.npz": "388b65167e2d0a3c1b23fe569a922e1ae1398a78dcf3444dc916d4d6e18c00ce",
+      "geo-test-01.npz": "0db8d0926696c0e71710857db83dad040dd9ac88e75835004a015e4dad43a98b",
+      "geo-test-02.npz": "b3d2f603b22d5e2d02c67ee290930e22bd70dc7022ddc50f31b41acd4a1d5175",
+      "geo-test-03.npz": "d6320712f146c226ac3b05f2d9d095949a8841e4902ca4d75a3fd2ebc8a9782a"
+    },
+    "cache_written": {
+      "geo-gen-01/arm_A.npz": "65d67bc41270686714ef1aa40d48270c05dd589da64183282412a7d78b61e5f4",
+      "geo-gen-01/arm_D.npz": "7ae0f0b543e036dc4f8d0b8b466429dc97d1da70ecf192cbec6fb80f8ce7f312",
+      "geo-gen-01/arm_E.npz": "51522f82a24918cac2ccc43e8f2a887f8c65158164180f63d0bf2f40c30a8f92",
+      "geo-gen-01/arm_F.npz": "820b29aefc64dd886174ced030527f4efeb346051ad4f79315eae136ae90213a",
+      "geo-gen-01/arm_G.npz": "d472e129ebf944f504b5bc2f699ab90bb4813a42dbc31cb4b1edca1bc5d198e9",
+      "geo-gen-01/arm_H.npz": "b2b5f7c8386fa25192afa5ccca7fbd6fcbbee8af5b9b90f09877e6f060bd36f3",
+      "geo-gen-01/masks.npz": "40e6d3f3834336b1bf00806bcb5995f0bae59ee81cb445fdcfe4680a48ca063e",
+      "geo-test-01/arm_A.npz": "f67ad5f6a5fb830ac8ef867d63b3aa2807679df54e6a2f8f99ee1a907e70f8e5",
+      "geo-test-01/arm_D.npz": "3e27f20c92fcb0327cc759e15361862ce410cfe38f8a7f1c52c68d174b3db970",
+      "geo-test-01/arm_E.npz": "b906f2763b746ee3dae0603eb3f332686d281efa613e97a1d132c5c023aeae3a",
+      "geo-test-01/arm_F.npz": "4398548a499f94bc56163524e82f4a5eb0c98c1a04bbcd794fe27fd6a111d073",
+      "geo-test-01/arm_G.npz": "36b519b3c15d1e9b985bcf4d5e62fde19f7fb980f9697a7e54c50039bce7575c",
+      "geo-test-01/arm_H.npz": "07b00a947e36f8f38db3125fc6d22c04b85e686a9a4ea12b477fbd0c1a6af8f2",
+      "geo-test-01/masks.npz": "8334ed06d529eac9c29d9d763d0b7f4899b3fe6eac0a2135da4ebfc17cd90424",
+      "geo-test-02/arm_A.npz": "922f3f6ee377bf0473d0674e5e73f6b14db97933d3316092d0504191a5491bda",
+      "geo-test-02/arm_D.npz": "a03750dbaeeaedf0dd3906b2fc97b13cf8220b85cdc2dee8ba28526f1b1ee94d",
+      "geo-test-02/arm_E.npz": "33e78daf728ce28ff7d89d37a148d3b7bcc05e01471de28b2b897151108f1cdd",
+      "geo-test-02/arm_F.npz": "a95c454176437d294cc190ec790a89d3bd73ca809a40ab235f3378707c6ecf0e",
+      "geo-test-02/arm_G.npz": "55806688892e4d39b35b837943a2d1772a27682a60b1f54474e660bdcd905e29",
+      "geo-test-02/arm_H.npz": "d0a7f1cc3fcf7784756b692fa236b341cd1b08b7627375efa90757921f1e4891",
+      "geo-test-02/masks.npz": "63ab3dd2c196af870669964176a3edf2dd161ff27e771fb72840e9a4b10ae21c",
+      "geo-test-03/arm_A.npz": "54d53aaa32607ab8be5512326ecfd904db68333808bd8372a5f6e4bff7e2d2c3",
+      "geo-test-03/arm_D.npz": "5ea78db9fe24b1271cfb6227a6eada915db5a94a9b27e117a89415467cc36b40",
+      "geo-test-03/arm_E.npz": "77da0acd812b7cac77fde7ae9fd470c49281c0e66eb72a094a146111bafc7e96",
+      "geo-test-03/arm_F.npz": "dbd5357ca1404cdacb6eecd89f6b3a32283e54e14be153fbfed0c0f16d69b318",
+      "geo-test-03/arm_G.npz": "cde4ffc22b71cbb089d1bbf2e024eca7a3e3ed47efedede54bc54a213c9bc6d6",
+      "geo-test-03/arm_H.npz": "e1357704b8038e1d1b23b63da60681c6749f979a223982d9e90273ed7c4314e8",
+      "geo-test-03/masks.npz": "29775813e4f091fd246c6fe93cf287e55b4a2007e9c3765b70d696e834f71402",
+      "metrics.csv": "28eef9da36de8881a2d33b128a960c69ef7df1e0b6de478330e474ed8dbe1049",
+      "octiles.csv": "a257b2581e0d9d525983e36e13846ac5c1e1600a5ea89e07a8ce5b140c13a0b2",
+      "summary.json": "ef5a36d300675fc26773b3a949a7f945af3ad386e9cf51bd112517d7be09f39c"
+    },
+    "summary": {
+      "row_counts": {
+        "global": 25464,
+        "roi": 37854,
+        "sham": 81840,
+        "texture": 4320,
+        "octile": 143862
+      },
+      "wall_seconds": 1533.4,
+      "out_root": "runs/e20-cache",
+      "manifest_problems": []
+    }
+  }
+]
