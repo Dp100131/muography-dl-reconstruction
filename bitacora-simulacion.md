@@ -1,0 +1,121 @@
+# Bitácora de simulación — Fase B (Etapas 6-12, OE1)
+
+**Proyecto:** Reconstrucción muográfica por transmisión asistida por aprendizaje profundo mediante mejora predictiva de imágenes de baja estadística para exploración volcánica.
+**Institución:** Universidad Industrial de Santander, Escuela de Ingeniería de Sistemas e Informática, grupo GOTS.
+**Alcance de este documento:** Fase B del plan de 30 etapas, Etapas E6 a E12 (validación física, catálogo de geometrías, pipeline de imagen, verificación y validación, campaña de simulación, construcción de pares de entrenamiento y congelamiento del dataset), correspondientes al objetivo específico OE1.
+
+## Nota de procedencia
+
+Este documento se compiló el 2026-09-28 a partir de registros primarios: el historial de commits del repositorio de trabajo `muography-thesis`, los informes de etapa en `docs/reports/`, las bitácoras semanales de `docs/research-log/`, los artefactos congelados del dataset (`dataset/splits.json`, `dataset/DATASHEET.md`, `data/campaign-geant4-merged/campaign-manifest.csv`) y 194 archivos de log de SLURM recuperados del directorio `~/muography-sim/logs` del clúster SC3. No existió una bitácora llevada en tiempo real durante la ejecución de estas etapas; las entradas siguientes están fechadas según la evidencia que las respalda (commit, timestamp de log o de tag), no según la fecha de redacción. Donde una fuente quedó desactualizada frente a un artefacto congelado posterior, se usa el artefacto congelado y se anota la discrepancia. Las rutas del tipo `results/…` y `figures/results/…` se refieren a este repositorio (`muography-dl-reconstruction`); los hashes de commit se refieren al repositorio de trabajo (`muography-thesis`).
+
+## Resumen
+
+La Fase B se ejecutó en dos pasadas. La primera, el 2026-08-05, corrió las Etapas 6 a 12 completas con un motor surrogate analítico (muestreo sobre la parametrización de flujo de Guan et al. 2015, ray-casting del campo de densidad y conteo Poisson) para validar el diseño de extremo a extremo antes de disponer de cómputo suficiente para transporte Monte Carlo completo. Ese resultado quedó congelado como `dataset-v1.0-rc1-surrogate`. La segunda pasada, entre el 2026-08-30 y el 2026-08-31, reemplazó el motor por Geant4 11.4.2 (física FTFP_BERT, generador EcoMug) en el clúster SC3 de la UIS, reutilizando el mismo catálogo de 19 geometrías y el mismo contrato de datos. La campaña Geant4 transportó del orden de 4,1×10⁹ muones en 114 vistas (19 geometrías × 6 vistas), y el dataset resultante, con pares de entrenamiento construidos por thinning binomial en cuatro niveles de submuestreo, quedó congelado como `dataset-v1.0` el 2026-08-31. Durante la campaña se diagnosticó y corrigió en vivo un defecto de reenvío duplicado de bloques, y al día siguiente de cerrarse el dataset se detectó y revirtió una sobrescritura accidental de los shards congelados causada por una ejecución con un entorno de Python distinto al del freeze.
+
+## Registro cronológico
+
+### 2026-08-05 — Etapa 6: Validación del generador de muones (motor surrogate y EcoMug real)
+
+**Actividad.** Se generaron 10⁷ muones con el muestreador del motor surrogate (inverse-CDF sobre la parametrización de Guan et al. 2015 con corrección de Chirkin) y se contrastaron sus distribuciones marginales contra la expectativa analítica y las anclas del PDG (2022). Con el compilador C++ ya disponible en WSL2, se compiló además `simulation/ecomug_standalone/` (g++ 13.3) y se generaron 10⁷ muones reales de EcoMug para la misma comparación.
+
+**Resultado.** Espectro de energía: residuo máximo 3,2 % (χ²/ndf = 0,78). Distribución cenital: residuo máximo 4,1 % (χ²/ndf = 6,8, atribuido a discretización de malla, no a desacuerdo físico). Dependencia angular cosⁿθ con n = 2,018 (PDG: n≈2). Para EcoMug real, la primera comparación arrojó residuos de 44-53 %; se identificó que la expectativa analítica omitía el factor de aceptancia cos θ de una superficie horizontal. Corregida la expectativa, el residuo cenital bajó a 4,4 %, con razón de carga μ⁺/μ⁻ medida de 1,28 (referencia experimental ≈1,27) y una diferencia espectral entre EcoMug y Guan de ~29 % en los extremos, documentada como incertidumbre sistemática a trasladar a la fase Geant4. Figuras: `figures/results/stage06_ecomug_spectrum.png` (publicada); las figuras del sampler surrogate puro (`stage06_energy_spectrum.png`, `stage06_zenith_distribution.png`) quedan solo en el repositorio de trabajo.
+
+**Incidencias.** El error de aceptancia cos θ en la validación de EcoMug (residuos iniciales 44-53 %) se documenta como hallazgo metodológico, no como defecto del pipeline.
+
+**Evidencia.** Commit `aee2a9f` (2026-08-05 16:44:10 -0500); `docs/reports/stage-06-flux-validation.md`; `docs/research-log/2026-W32.md` (adenda de la tarde); dato de aceptación de EcoMug corregida citado también en el mensaje del tag `dataset-v1.0-rc1-surrogate`.
+
+### 2026-08-05 — Etapa 7: Catálogo de geometrías volcánicas
+
+**Actividad.** Se diseñó un perfil de montaña base (cono de 500-700 m de radio, 350-450 m de altura, ρ=2,65 g/cm³) con tres tipos de anomalía interna (conducto de baja densidad, cavidad, cuerpo denso) y se construyó un catálogo de 19 configuraciones (12 train, 3 val, 3 test, 1 de generalización) mediante `simulation/geometry_catalog/make_catalog.py`, semilla 20260805.
+
+**Resultado.** Catálogo de 19 geometrías versionadas en JSON, con figuras de inspección visual de los cortes de densidad. Figuras: `figures/results/stage07_catalog_cross_sections.png`, `stage07_geometry_detail.png` (ambas publicadas).
+
+**Incidencias.** La primera versión de la figura de corte transversal (plano fijo y=0) no mostraba las anomalías descentradas; se detectó en la inspección visual y se corrigió cortando por el plano de la primera anomalía de cada geometría. Queda registrado como evidencia de que la inspección visual funcionó como control real.
+
+**Evidencia.** Commit `050693a` (2026-08-05 16:48:25 -0500); `docs/reports/stage-07-geometry-catalog.md`.
+
+### 2026-08-05 — Etapa 8: Integración del pipeline de imagen (piloto)
+
+**Actividad.** Se integraron el flujo, el ray-casting del campo de densidad, el cálculo de opacidad, la energía mínima CSDA y el conteo Poisson en un pipeline de un solo comando (`run_pilot.py`). Se ejecutó un piloto sobre `geo-train-08`, vista 0, ~10⁶ eventos.
+
+**Resultado.** 1.001.096 eventos detectados en 0,88 días equivalentes de exposición; silueta del edificio consistente con la geometría (ápice a ~22° de elevación); atenuación físicamente plausible (trayectorias de 1-2 km de roca requieren E > ~1 TeV en la base). Rendimiento de 44 s por vista tras acotar el ray-march al cilindro envolvente del edificio. Se fijó la exposición de referencia de la campaña en 30 días por vista (~3,4×10⁷ eventos/vista con el motor surrogate). Figura definitiva (motor Geant4, ejecución posterior): `figures/results/stage08_pilot_muogram_geant4.png`.
+
+**Evidencia.** Commit `668740d` (2026-08-05 16:56:32 -0500); `docs/reports/stage-08-pipeline-pilot.md`.
+
+### 2026-08-05 — Etapa 9: Verificación y validación física (motor surrogate)
+
+**Actividad.** Se ejecutaron cuatro pruebas independientes contra cálculos que no comparten malla ni tabla de interpolación con el pipeline: transmisión en un cono de control, sensibilidad a una cavidad de contraste conocido, comportamiento Poissoniano de los conteos y exactitud de la tabla de flujo.
+
+**Resultado.** Error de transmisión máximo 1,3 % (mediana 0,3 %) contra el cálculo analítico de línea de visión; reducción de opacidad por la cavidad exacta (0,0 % de error) con boost de transmisión de 1,390 frente a 1,388 teórico (0,12 %); índice de dispersión Poisson medio de 0,9995 sobre 400 réplicas; error máximo de la tabla de flujo de 0,77 %. Figura: `figures/results/stage09_vv_physics.png`.
+
+**Incidencias.** Ninguna; las cuatro pruebas cumplieron el criterio de aceptación del plan (error <10-15 % o <1 % según la prueba).
+
+**Evidencia.** Commit `362878e` (2026-08-05 16:59:24 -0500); `docs/reports/stage-09-physics-vv.md`.
+
+### 2026-08-05 — Etapas 10-12: campaña surrogate, pares de entrenamiento y congelamiento `dataset-v1.0-rc1-surrogate`
+
+**Actividad.** Se ejecutó una campaña de producción con el motor surrogate sobre las 19 geometrías × 6 vistas (`run_campaign.py`); se construyeron pares de entrenamiento por thinning de Poisson en cuatro fracciones de submuestreo (50/10/5/1 %) con K=20 realizaciones por fracción (`build_dataset.py`); se particionó por geometría y se congeló el dataset (`partition_freeze.py`).
+
+**Resultado.** 114/114 trabajos completados (100 % del catálogo), 3,89×10⁹ cuentas de referencia totales, 0 archivos corruptos por verificación SHA-256, respaldo espejo local verificado, 10,7 minutos de pared. 9.120 pares de entrenamiento (train 5.760, val 1.440, test 1.440, generalización 480), con línea base sin modelo de SSIM 0,720 / 0,529 / 0,402 / 0,140 (50/10/5/1 %, monótona decreciente, criterio del plan cumplido). Particiones por geometría sin fuga, verificadas por asserts automatizados. Dataset etiquetado `dataset-v1.0-rc1-surrogate` sobre el commit `b2de9c2`.
+
+**Incidencias.** Ninguna técnica. Quedaron explícitamente pendientes para la versión definitiva: regeneración con Geant4, respaldo externo físico y depósito en el repositorio del grupo GOTS.
+
+**Evidencia.** Commits `8e31fb0` (17:03:35) y `b2de9c2` (17:16:29, 2026-08-05 -0500); tag `dataset-v1.0-rc1-surrogate`; `docs/reports/stage-10-campaign.md`, `stage-11-dataset-pairs.md`, `stage-12-dataset-freeze.md`; `docs/research-log/2026-W32.md` (adenda de la tarde).
+
+### 2026-08-30 — Preparación del entorno Geant4 en el clúster SC3
+
+**Actividad.** Se verificó el acceso a una cuenta personal asociada al grupo SIMON en SC3 mediante llave SSH dedicada y doble salto toctoc→guane. Se hizo un reconocimiento de la plataforma: QoS `normal` (21 días, 4 nodos, 4 trabajos por usuario, no la QoS estudiantil de 1 hora), partición `legacy` (8 nodos × 24 núcleos) y `amd` (2 nodos × 256 núcleos), módulo `geant4/11.4.2` con toolchain `gnu14/14.2.0` obligatorio. Se compiló la app Geant4 de producción (`muography_sim`) en un nodo de cómputo, con vendoring de EcoMug y nlohmann/json para builds sin conexión.
+
+**Resultado.** Tres defectos de los primeros builds corregidos: cast de tipos en la definición del muon, toolchain enlazando contra GLIBCXX del gcc de sistema en vez del módulo (`gnu14` debe cargarse siempre tras `module purge`), y spam de advertencias del `G4ParticleGun` por redefinición de energía cinética por evento. Espacio de trabajo de campaña resuelto por defecto a `$HOME/muography-scratch` (el flujo de datos es de histogramas, ~300 MB en total, no de datos por evento), con adopción automática de `/scratch/SIMON` si el administrador lo llega a crear.
+
+**Incidencias.** Ninguna bloqueante; los tres defectos de build se corrigieron antes de correr la campaña.
+
+**Evidencia.** Commits `81a5935`, `477f193`, `2207f01`, `116c79e`, `ce55a5b` (2026-08-30, 18:43 a 19:11 -0500); `docs/reports/phase-b-sc3-runbook.md`; `docs/research-log/2026-W36.md`.
+
+### 2026-08-30 — Re-ejecución de la Etapa 9 en Geant4: plano de scoring y comparación de motores
+
+**Actividad.** Se ejecutó una serie de convergencia A/B del plano de scoring del detector (100 → 300 → 600 m) para diagnosticar un hallazgo de física: un plano de 1,2 m tras kilómetros de aire solo detectaba la cola de muones por encima de 90 GeV, porque la dispersión múltiple desplaza a los muones de pocos GeV decenas de metros de su trayectoria nominal. Se calibró S0 del generador por tablas (dirección según los pesos de cielo abierto del protocolo, normalización Guan; espectro de momento del EcoMug real por banda de elevación, razón de carga 1,2794 medida). Se ejecutaron el piloto definitivo y `analysis/compare_engines.py` para la comparación cruzada Geant4 vs. surrogate sobre la misma geometría y semilla de conteo (`geo-train-01`, vista 0).
+
+**Resultado.** Plano de 100 m: déficit relativo de 12 % por truncar muones con dispersión múltiple. De 300 a 600 m la ganancia es de solo ~1 %, menos de 0,5 % respecto a la asíntota; plano final fijado en 600×600 m. Calibración S0: 36.175.380 incidentes de cielo abierto por vista para 30 días de exposición. Piloto definitivo (trabajo SLURM 29484, nodo legacy, log `muo-smoke-29484.out` en la raíz del directorio de simulación del clúster, no en `logs/`): 36.174.573 eventos incidentes, 26.693.501 detectados (73,79 %), 1.156,93 s de pared (19,3 min), coincidiendo con la asíntota de la serie A/B. Los metadatos del piloto (`data/campaign-geant4/pilot/geo-train-01_view0.meta.json`, commit `da638af`) corroboran exactamente esas mismas cifras (`events_transported=36174573`, `detected_in_bins=26693501`, `wall_seconds=1156.9252871880308`). Comparación de motores: razón de cuentas totales Geant4/surrogate = 0,7728, razón de cielo abierto = 0,6788 (déficit real atribuido a pérdida de energía en el aire, decaimiento del muon en vuelo y espectro EcoMug más blando que Guan, física ausente en el surrogate), SSIM log-normalizado 0,7175, ancho de borde de silueta 16,235° (Geant4) vs. 19,412° (surrogate, sin dispersión múltiple). Figura: `figures/results/stage09_engine_comparison.png`.
+
+**Incidencias.** Ninguna; el hallazgo del plano de scoring insuficiente se trató como descubrimiento físico esperado del cambio de motor, no como defecto de implementación, y se resolvió con la serie de convergencia antes de lanzar la campaña completa.
+
+**Evidencia.** Commits `30fd245` (19:22:13), `d054a8c` (19:28:43), `653f0fd` (20:02:56), `da638af` (20:24:16, 2026-08-30 -0500); `docs/reports/stage-09-engine-comparison.json`; log SLURM `muo-smoke-29484.out` (recuperado del clúster, detected=26693501, wall_s=1156.93, coincide exactamente con `total_counts_geant4` del JSON de comparación) y `data/campaign-geant4/pilot/geo-train-01_view0.meta.json`; `docs/research-log/2026-W36.md`.
+
+### 2026-08-30/31 — Etapa 10: campaña de producción Geant4 en SC3
+
+**Actividad.** Se desplegó una cadena de trabajos auto-perpetuante (`CHAIN=1`, commit `a7df614`): cada bloque terminado vuelve a consultar la cola del clúster y resomete los bloques faltantes, tolerando los rechazos de la QoS por límite de envíos simultáneos (`QOSMaxSubmitJobPerUserLimit`) y reintentando en la siguiente ronda. Cada bloque corresponde a una vista completa (19 geometrías × 6 vistas = 114 bloques), con el número de eventos calibrado por Poisson alrededor de la media de S0 según la semilla de la vista.
+
+**Resultado.** De los 194 archivos de log recuperados de `~/muography-sim/logs` (trabajos SLURM 29485 a 29708), se identifican 114 combinaciones únicas de geometría y vista, todas con línea `RUN DONE` y duración de pared entre 1.011,9 s y 1.221,5 s por bloque (mediana 1.109,7 s, ~18,5 min), duraciones tomadas directamente de esa línea de cada log (tiempo de ejecución, no de cola). La fecha de mtime de esos 194 archivos en el clúster (`ls -l --time-style=+%Y-%m-%dT%H:%M:%S%z ~/muography-sim/logs/*.out`, que aproxima el cierre de cada trabajo) va del 2026-08-30T20:29:08-0500 al 2026-08-31T16:07:11-0500, hora local del clúster (UTC-5); esa ventana no incluye el tiempo que cada trabajo esperó en cola antes de correr. El manifiesto final (`data/campaign-geant4-merged/campaign-manifest.csv`, 114 filas) registra 4.124.005.421 muones transportados y 3.025.131.757 detectados en total sobre las 114 vistas (suma de las columnas `events_transported` y `detected`), con hash SHA-256 por vista. La campaña completa (114/114 vistas) se cerró y fusionó (`merge_blocks.py`) antes de las 16:47 del 2026-08-31, hora de commit del build final del dataset.
+
+**Incidencias.** **Carrera de reenvío en vuelo.** El lanzador de la cadena solo verificaba los bloques ya publicados en disco, no los trabajos en curso en la cola, por lo que interpretaba una vista que aún se estaba computando como faltante y la resometía: el commit `8a122f1` (2026-08-31 08:19:36 -0500) documenta 77 vistas completas recomputadas por duplicado, del orden del 65 % del cómputo nocturno, sin corrupción de datos porque las semillas por vista son idénticas y el resultado duplicado es reproducible bit a bit. La corrección comparó nombres de trabajo por vista contra `squeue`, añadió un corto-circuito idempotente sobre bloques ya publicados y reemplazó el `mv` de publicación (que anidaba directorios sobre bloques existentes en vez de sobrescribirlos atómicamente) por una publicación con guardia de carrera. De los 194 logs recuperados, 41 combinaciones geometría-vista (36 %) muestran más de una ejecución completa (`RUN DONE`) en los logs sobrevivientes, consistente con el patrón descrito en el commit; un log (`b-06-5-29613.out`, trabajo 29613) contiene explícitamente el mensaje de la guardia ya corregida (`lost publish race ... discarding duplicate result`), evidencia de que el mecanismo de descarte operaba en producción tras el fix. Casi todos los logs (190/194) registran el rechazo rutinario `QOSMaxSubmitJobPerUserLimit` al intentar resometer más trabajos de los que permite la QoS por ronda; esto es el comportamiento esperado del diseño de cadena, no una falla.
+
+**Evidencia.** Commits `eb25945` (2026-08-30 19:29:32), `a7df614` (19:31:41), `8a122f1` (2026-08-31 08:19:36, -0500); `data/campaign-geant4-merged/campaign-manifest.csv` / `results/dataset/campaign-manifest.csv` (repositorio publicado); 194 logs SLURM `*.out` recuperados de `~/muography-sim/logs` en SC3 (trabajos 29485-29708); `docs/reports/phase-b-sc3-runbook.md`; `docs/research-log/2026-W36.md` ("Incidencias y su resolución").
+
+### 2026-08-31 — Etapas 11-12: pares de entrenamiento por thinning binomial y congelamiento `dataset-v1.0`
+
+**Actividad.** Se realizó un submuestreo por thinning binomial (exacto sobre eventos reales, a diferencia del thinning de Poisson usado con el motor surrogate) en las mismas cuatro fracciones (50/10/5/1 %) por 20 realizaciones, 6 vistas y 19 geometrías. Se particionó por geometría (12 train / 3 val / 3 test / 1 generalización) con los mismos asserts de no fuga de la Etapa 12, y se actualizó el datasheet al motor Geant4.
+
+**Resultado.** 9.120 pares de entrenamiento (train 5.760, val 1.440, test 1.440, generalización 480). Línea base sin modelo congelada en `dataset/stats/stage11_baseline.json` (y en `results/dataset/stats/stage11_baseline.json` del repositorio publicado): SSIM media 0,8771 / 0,5319 / 0,3737 / 0,1025 para 50/10/5/1 % (n=2.280 por nivel), monótonamente decreciente, más exigente en los niveles bajos que la línea base del motor surrogate (0,720/0,529/0,402/0,140), consistente con la dispersión múltiple real ausente en el surrogate. SHA-256 por shard registrado en `dataset/splits.json`, con timestamp de congelamiento `2026-08-31T21:46:27+00:00` (UTC). Dataset etiquetado `dataset-v1.0` sobre el commit `c4487f3`.
+
+**Incidencias.** El informe `docs/reports/stage-11-dataset-pairs.md` conserva el encabezado y las cifras de línea base del motor surrogate (0,720 en vez de 0,8771); se detectó como desactualización en la auditoría de la semana 38 y no se ha corregido en el repositorio de trabajo a la fecha de este documento. Las figuras de la Etapa 11 (`stage11_baseline_metrics.png`, `stage11_example_pairs.png`) también quedaron pendientes de regeneración desde el motor Geant4 después del incidente de sobrescritura de shards descrito en la entrada siguiente; no hay registro posterior de que se hayan regenerado. Este documento usa las cifras congeladas en `stage11_baseline.json`, no las del informe.
+
+**Evidencia.** Commit `c4487f3` (2026-08-31 16:47:47 -0500); tag `dataset-v1.0`; `dataset/splits.json`, `dataset/DATASHEET.md`, `dataset/stats/stage11_baseline.json` (y sus equivalentes en `results/dataset/` del repositorio publicado); `docs/research-log/2026-W36.md`; `docs/research-log/2026-W38.md` (auditoría de informes desactualizados).
+
+### 2026-09-01 — Incidente: sobrescritura de shards congelados en el clúster
+
+**Actividad.** Durante un intento de regenerar las figuras de la Etapa 11, se ejecutó `build_dataset.py` sobre la copia del dataset en el clúster sin activar el entorno virtual del freeze en el nodo CPU, por lo que el proceso corrió con el numpy 1.23.5 del sistema en vez del numpy 2.4.4 fijado en el entorno congelado.
+
+**Resultado.** El generador de números aleatorios de numpy produce realizaciones binomiales distintas entre versiones, por lo que los 19 shards del clúster quedaron sobrescritos con datos que no correspondían al dataset congelado y tagueado. La discrepancia se detectó de inmediato por verificación de hashes (0/19 coincidían con `splits.json`). Contención: se canceló el trabajo de regeneración en curso (job 29714, ~13 minutos de cómputo perdido), se restauraron los 19 shards desde la copia local congelada (19/19 hashes verificados) y se relanzó la regeneración de figuras (job 29717) sobre esa copia restaurada. El entrenamiento en curso en paralelo (overfit extendido, job 29715) ya había cargado los datos congelados en memoria antes de la sobrescritura y no se vio afectado.
+
+**Incidencias.** Se adoptaron tres medidas correctivas registradas en el mismo commit: (1) los artefactos congelados solo se regeneran dentro del entorno de Python fijado por el freeze, con numpy pineado; (2) activación explícita del entorno virtual en cualquier `srun` ad-hoc sobre el clúster; (3) `build_dataset.py` ahora verifica los hashes del freeze al terminar de correr y advierte si no los reproduce exactamente. Las figuras de la Etapa 11 quedaron pendientes de regeneración local (ver entrada anterior).
+
+**Evidencia.** Commit `e12c8ec` (2026-09-01 11:54:50 -0500), que modifica `analysis/build_dataset.py` y añade el relato a `docs/research-log/2026-W36.md`.
+
+## Cierre
+
+**Estado final.** El dataset sintético de la tesis quedó congelado en su versión definitiva bajo el tag `dataset-v1.0` (commit `c4487f3`, 2026-08-31), motor Geant4 11.4.2, 19 geometrías × 6 vistas, 4.124.005.421 muones transportados en total según el manifiesto de campaña, 9.120 pares de entrenamiento (5.760 train / 1.440 val / 1.440 test / 480 generalización), particiones por geometría verificadas sin fuga y SHA-256 por shard registrado en `dataset/splits.json`. La política de integridad adoptada tras el incidente del 2026-09-01 es verificar los hashes del freeze en cada regeneración de artefactos derivados y bloquear (con advertencia) cualquier reconstrucción que no los reproduzca exactamente.
+
+**Acciones humanas pendientes registradas en las fuentes.** A la fecha del último registro disponible (`docs/research-log/2026-W38.md`, semana del 2026-09-14): el respaldo externo físico del dataset (~450 MB, en disco externo u OneDrive institucional) figura como pendiente desde la semana 36 y seguía sin ejecutarse en la semana 38. El depósito de una copia en el repositorio del grupo GOTS, señalado como pendiente en el informe de la Etapa 12 por estar bloqueado a la publicación en GitHub, no tiene confirmación posterior en las fuentes revisadas una vez que esa publicación se completó (semana 36); su estado actual no está documentado.
+
+**Vacíos de registro declarados.** No existe bitácora semanal de investigación para las semanas 2026-W33, W34, W35 y W37 (el directorio `docs/research-log/` solo contiene W32, W36 y W38); el trabajo de esas semanas, si lo hubo, se reconstruye únicamente a través del historial de commits, sin el contexto narrativo de una bitácora. Los 194 logs de SLURM recuperados del clúster el 2026-09-28 corresponden al estado del directorio `~/muography-sim/logs` en ese momento; los smoke tests anteriores al trabajo 29485 y cualquier log de reintento rotado o purgado antes de la copia no forman parte de este registro, por lo que el recuento de 41 combinaciones geometría-vista con más de una ejecución es un límite inferior de la magnitud real del defecto de reenvío duplicado, no una medición exhaustiva. El comando `sacct` no estuvo disponible desde el nodo de acceso al momento de esta compilación, por lo que los tiempos de cola y de espera de cada trabajo (a diferencia de su duración de ejecución, sí registrada en cada log) no se pudieron reconstruir. No se encontró en las fuentes revisadas una fecha posterior de ejecución del respaldo externo.
