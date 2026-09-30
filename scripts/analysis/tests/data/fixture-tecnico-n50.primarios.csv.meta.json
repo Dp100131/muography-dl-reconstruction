@@ -1,0 +1,49 @@
+{
+ "base_radius_m": 509.7,
+ "binary_sha256": "60a151eaebb55f1aef99db88337f4cbd0125d0abc1e146be95bc9f64f0df50c6",
+ "canon_fnv1a64": "73ff04a2e4429cfa",
+ "canon_hash_layout": "FNV-1a-64 over each record in file order: little-endian int64 id, float64 x_m, y_m, z_m, dx, dy, dz, ekin_gev, int32 pdg",
+ "case_code": 6,
+ "columns": [
+  "id",
+  "x_m",
+  "y_m",
+  "z_m",
+  "dx",
+  "dy",
+  "dz",
+  "ekin_gev",
+  "pdg",
+  "charge_e"
+ ],
+ "file_sha256": "0ae76a8d610ca8a37c688768fef5b08cf9c9433e7154f5132381879abd2b0c28",
+ "float_format": "std::to_chars shortest round-trip; LF line endings",
+ "format": "oe1-primarios/1",
+ "generator": "legacy PrimaryGeneratorAction::GeneratePrimaries (unchanged) called for each G4Event(id); the primary is read back from the event",
+ "geometry_id": "geo-train-06",
+ "kind": "source-model",
+ "n": 50,
+ "replica": 1,
+ "rng": {
+  "draws_per_primary": 7,
+  "engine": "CLHEP::MixMaxRng (private instance, installed with G4Random::setTheEngine for generation only)",
+  "key": [
+   2026092901,
+   6,
+   0,
+   1329943345
+  ],
+  "key_text": "setSeeds({s_src, case_code, 0, TAG_SRC=0x4F455331}, 4)"
+ },
+ "source_seed": 2026092901,
+ "start_radius_m": 1809.7,
+ "units": {
+  "charge_e": "elementary charges",
+  "direction": "unit travel direction",
+  "ekin_gev": "kinetic energy, GeV",
+  "id": "Geant4 event ID, rows 0..n-1 in order",
+  "pdg": "13 = mu-, -13 = mu+",
+  "position": "m, world frame (cone axis at the origin, ground at z = 0)"
+ },
+ "view_index": 0
+}
