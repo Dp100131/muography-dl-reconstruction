@@ -11,6 +11,7 @@
 #include "G4ThreeVector.hh"
 #include "Randomize.hh"
 
+#include "PrimaryList.hh"
 #include "RunData.hh"
 
 namespace {
@@ -33,6 +34,26 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction() { delete fGun; }
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
   RunData::Instance().RecordGenerated();
+
+  // OE1 list mode: the primary of event k is row k of the frozen list. The
+  // gun setters run in the legacy order below; no random number is drawn.
+  if (fList != nullptr) {
+    const G4int id = event->GetEventID();
+    if (id < 0 || static_cast<std::size_t>(id) >= fList->Size()) {
+      G4Exception("PrimaryGeneratorAction::GeneratePrimaries", "OE1-LIST-001",
+                  FatalException, "event ID outside the primary list");
+      return;
+    }
+    const oe1::PrimaryRecord& r = fList->At(static_cast<std::size_t>(id));
+    fGun->SetParticlePosition(G4ThreeVector(r.x_m * m, r.y_m * m, r.z_m * m));
+    fGun->SetParticleDefinition(
+        r.pdg == -13 ? static_cast<G4ParticleDefinition*>(G4MuonPlus::Definition())
+                     : static_cast<G4ParticleDefinition*>(G4MuonMinus::Definition()));
+    fGun->SetParticleMomentumDirection(G4ThreeVector(r.dx, r.dy, r.dz));
+    fGun->SetParticleEnergy(r.ekin_gev * GeV);
+    fGun->GeneratePrimaryVertex(event);
+    return;
+  }
 
   // --- Direction: protocol-weighted elevation row + uniform azimuth.
   const int row = fTables->SampleRow(G4UniformRand());

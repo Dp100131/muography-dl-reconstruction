@@ -8,6 +8,9 @@
 
 class G4ParticleGun;
 class G4Event;
+namespace oe1 {
+class PrimaryList;
+}
 
 // Table-driven primary generator.
 //
@@ -31,11 +34,16 @@ class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 
   void GeneratePrimaries(G4Event* event) override;
 
+  // OE1 stage 1 (P2): replay a frozen primary list (row = event ID) instead
+  // of sampling. Null (the default) keeps the legacy sampler.
+  void SetPrimaryList(const oe1::PrimaryList* list) { fList = list; }
+
  private:
   G4ParticleGun* fGun = nullptr;
   const FluxTables* fTables;
   double fLookAzRad;     // world azimuth the detector looks toward
   double fStartRadiusM;  // horizontal backtrack distance from the detector
+  const oe1::PrimaryList* fList = nullptr;
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include "G4Track.hh"
 
 #include "DetectorConstruction.hh"
+#include "EventAction.hh"
 #include "RunData.hh"
 
 namespace {
@@ -38,6 +39,7 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
 {
   auto* track = step->GetTrack();
   if (track->GetParentID() != 0) return;  // primaries only (belt & braces)
+  if (fEv != nullptr) fEv->OnPrimaryStep(step);  // OE1 list mode only
 
   const auto* post = step->GetPostStepPoint();
   const auto* volume = post->GetTouchableHandle()->GetVolume();
@@ -57,6 +59,9 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   if (iAz >= 0 && iEl >= 0) {
     RunData::Instance().RecordHit(iAz, iEl,
                                   post->GetKineticEnergy() / GeV);
+  }
+  if (fEv != nullptr) {  // OE1 list mode only: same integers and energy as above
+    fEv->OnPlane(iAz, iEl, post->GetKineticEnergy() / GeV, elev / kDeg, relAz / kDeg);
   }
   track->SetTrackStatus(fStopAndKill);  // job done for this primary
 }
