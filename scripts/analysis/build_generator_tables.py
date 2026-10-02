@@ -4,7 +4,7 @@
 Design (S0 calibration, campaign runbook):
 - DIRECTION weighting per elevation row follows the PROTOCOL convention
   lambda_open = Phi_int(theta) * A * d_omega * T (flat detector area), taken
-  from the surrogate campaign itself (lam / transmission — open-sky rate map,
+  from the surrogate campaign itself (lam / transmission â€” open-sky rate map,
   azimuth-independent per row). This keeps the Geant4 reference images on the
   same acceptance convention as the frozen protocol and the surrogate, so the
   E9 cross-comparison measures TRANSPORT physics only.
@@ -14,9 +14,9 @@ Design (S0 calibration, campaign runbook):
 - Charge ratio mu+/mu- = measured EcoMug value.
 
 Outputs (small text files, versioned and shipped in the deploy bundle):
-    scripts/simulation/geant4_app/tables/row_weights_30d.txt   # 256 rows: elev_deg lambda_open_30d
-    scripts/simulation/geant4_app/tables/p_cdf.txt             # bands x quantiles inverse CDF
-    scripts/simulation/geant4_app/tables/meta.json
+    scripts/simulation/geant4_app/tables-az-edges-v1/row_weights_30d.txt   # 256 rows: elev_deg lambda_open_30d
+    scripts/simulation/geant4_app/tables-az-edges-v1/p_cdf.txt             # bands x quantiles inverse CDF
+    scripts/simulation/geant4_app/tables-az-edges-v1/meta.json
 
 Usage:
     python scripts/analysis/build_generator_tables.py
@@ -32,7 +32,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[2]
 CAMPAIGN_VIEW = REPO / "data/campaign/geo-train-01/geo-train-01_view0.npz"
 ECOMUG_CSV = REPO / "scripts/simulation/ecomug_standalone/muons.csv"
-OUT_DIR = REPO / "scripts/simulation/geant4_app/tables"
+OUT_DIR = REPO / "scripts/simulation/geant4_app/tables-az-edges-v1"
 
 N_EL = 256
 EL_MIN, EL_MAX = 2.0, 47.0
@@ -41,9 +41,19 @@ N_QUANTILES = 257     # inverse-CDF sampling points per band
 
 
 def build_row_weights() -> np.ndarray:
+    meta = json.loads(CAMPAIGN_VIEW.with_suffix(".meta.json").read_text())
+    grid = meta.get("angular_grid", {})
+    if (grid.get("azimuth_convention") != "az-edges-v1" or
+            grid.get("n_az") != 256 or grid.get("n_el") != N_EL or
+            grid.get("az_edges_deg") != [-30.0, 30.0] or
+            grid.get("az_step_deg") != 60/256 or
+            meta.get("exposure_days") != 30):
+        raise ValueError("requires a NEW 30-day surrogate view with az-edges-v1 metadata")
     z = np.load(CAMPAIGN_VIEW)
     lam = z["lam"].astype(np.float64)
     trans = z["transmission"].astype(np.float64)
+    if lam.shape != (256, 256) or trans.shape != lam.shape:
+        raise ValueError("unexpected angular map shape")
     with np.errstate(divide="ignore", invalid="ignore"):
         lam_open = np.where(trans > 0, lam / trans, np.nan)
     # Open-sky rate is azimuth-independent: check row constancy, then reduce.
@@ -79,7 +89,9 @@ def build_p_cdfs() -> tuple[np.ndarray, np.ndarray, float]:
 
 
 def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    if OUT_DIR.exists():
+        raise FileExistsError("use a new output directory for angular tables")
+    OUT_DIR.mkdir(parents=True)
 
     row_total = build_row_weights()
     el_centers = np.linspace(EL_MIN, EL_MAX, N_EL)
@@ -98,6 +110,9 @@ def main() -> None:
 
     total_30d = float(row_total.sum())
     meta = {
+        "azimuth_convention": "az-edges-v1",
+        "n_azimuth_columns": 256,
+        "azimuth_min_deg": -30.0, "azimuth_max_deg": 30.0,
         "direction_convention": "protocol lambda_open = Phi_int*A*d_omega "
                                 "(flat area, Guan-normalized, from surrogate campaign)",
         "spectrum_source": "real EcoMug sample (stage 6, 1e7 muons), "

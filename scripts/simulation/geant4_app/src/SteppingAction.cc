@@ -9,6 +9,7 @@
 #include "DetectorConstruction.hh"
 #include "EventAction.hh"
 #include "RunData.hh"
+#include "AzimuthGrid.hh"
 
 namespace {
 constexpr double kDeg = M_PI / 180.0;
@@ -20,8 +21,7 @@ double wrapAngle(double a)
   return a;
 }
 
-// Bin index matching numpy.linspace(min, max, N) CENTERS as used by the
-// surrogate: spacing = (max-min)/(N-1), idx = round((v-min)/spacing).
+// Elevation only: retain the historical center-based convention.
 int binIndex(double v, double vmin, double vmax, int n)
 {
   const double spacing = (vmax - vmin) / (n - 1);
@@ -52,8 +52,7 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
   const double relAz =
       wrapAngle(std::atan2(from.y(), from.x()) - fLookAzRad);
 
-  const int iAz = binIndex(relAz / kDeg, -viewpar::kAzHalfDeg,
-                           viewpar::kAzHalfDeg, viewpar::kNAz);
+  const int iAz = azgrid::Bin(relAz / kDeg);
   const int iEl = binIndex(elev / kDeg, viewpar::kElMinDeg,
                            viewpar::kElMaxDeg, viewpar::kNEl);
   if (iAz >= 0 && iEl >= 0) {

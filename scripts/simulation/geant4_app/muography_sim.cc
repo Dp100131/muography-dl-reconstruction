@@ -341,6 +341,11 @@ int main(int argc, char** argv)
   oe1::PrimaryList primaryList;
   oe1::RoiMask roiMask;
   if (listMode) {
+    std::cerr << "az-edges-v1: frozen OE1 lists/ROI are not versioned for this grid; "
+                 "use the historical executable for A/B replay\n";
+    return 2;
+  }
+  if (listMode) {
     std::string oe1Err;
     if (!primaryList.Load(oe1Opt.primaries, oe1Opt.primariesSha256, oe1Err) ||
         !roiMask.Load(oe1Opt.roiMask, oe1Opt.roiMaskSha256, oe1Err)) {

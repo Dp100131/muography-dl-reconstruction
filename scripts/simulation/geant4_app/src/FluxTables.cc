@@ -1,4 +1,5 @@
 #include "FluxTables.hh"
+#include "AzimuthGrid.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -10,6 +11,17 @@
 
 FluxTables::FluxTables(const std::string& dir)
 {
+  // Fail before sampling when historical tables are passed to the new grid.
+  {
+    std::ifstream in(dir + "/meta.json");
+    if (!in) throw std::runtime_error("az-edges-v1 requires table metadata");
+    const auto meta = nlohmann::json::parse(in);
+    if (meta.value("azimuth_convention", "") != azgrid::kVersion ||
+        meta.value("n_azimuth_columns", 0) != viewpar::kNAz ||
+        meta.value("azimuth_min_deg", 0.0) != -viewpar::kAzHalfDeg ||
+        meta.value("azimuth_max_deg", 0.0) != viewpar::kAzHalfDeg)
+      throw std::runtime_error("incompatible angular tables: expected az-edges-v1");
+  }
   // --- row weights
   {
     std::ifstream in(dir + "/row_weights_30d.txt");

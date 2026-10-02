@@ -1,4 +1,5 @@
 #include "RunAction.hh"
+#include "AzimuthGrid.hh"
 
 #include <sys/resource.h>
 
@@ -492,7 +493,12 @@ void RunAction::EndOfRunAction(const G4Run* run)
         meta["rusage_max_rss_kb"] = static_cast<long long>(usage.ru_maxrss);  // kilobytes on Linux
       }
     }
-    meta["grid"] = {{"n_az", viewpar::kNAz},
+    meta["grid"] = {{"azimuth_convention", azgrid::kVersion},
+                    {"az_edges_deg", {-viewpar::kAzHalfDeg, viewpar::kAzHalfDeg}},
+                    {"az_step_deg", azgrid::kStepDeg},
+                    {"az_first_center_deg", azgrid::Center(0)},
+                    {"elevation_convention", "legacy-centers-2-47"},
+                    {"n_az", viewpar::kNAz},
                     {"n_el", viewpar::kNEl},
                     {"az_half_deg", viewpar::kAzHalfDeg},
                     {"el_min_deg", viewpar::kElMinDeg},

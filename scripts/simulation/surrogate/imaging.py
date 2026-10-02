@@ -28,7 +28,7 @@ from scipy.interpolate import RegularGridInterpolator
 from . import flux_model as fm
 from .geometry import VolcanoGeometry, AIR_DENSITY
 
-ENGINE_VERSION = "surrogate-v0.9"
+ENGINE_VERSION = "surrogate-v0.9-az-edges-v1"
 
 # Angular grid (provisional Phase B parameters v0.9)
 N_AZ, N_EL = 256, 256
@@ -62,7 +62,8 @@ class DetectorView:
 
 
 def angular_grid():
-    az = np.deg2rad(np.linspace(-AZ_HALF_DEG, AZ_HALF_DEG, N_AZ))
+    az_edges = np.linspace(-AZ_HALF_DEG, AZ_HALF_DEG, N_AZ + 1)
+    az = np.deg2rad((az_edges[:-1] + az_edges[1:]) / 2)
     el = np.deg2rad(np.linspace(EL_MIN_DEG, EL_MAX_DEG, N_EL))
     return az, el
 
@@ -190,6 +191,10 @@ def view_metadata(geo: VolcanoGeometry, view: DetectorView,
         "geometry_id": geo.geometry_id,
         "view": asdict(view),
         "angular_grid": {
+            "azimuth_convention": "az-edges-v1",
+            "az_edges_deg": [-AZ_HALF_DEG, AZ_HALF_DEG],
+            "az_step_deg": 2 * AZ_HALF_DEG / N_AZ,
+            "elevation_convention": "legacy-centers-2-47",
             "n_az": N_AZ, "n_el": N_EL,
             "az_half_deg": AZ_HALF_DEG,
             "el_range_deg": [EL_MIN_DEG, EL_MAX_DEG],
