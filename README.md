@@ -149,6 +149,10 @@ El documento se incluye textual, tal como se congeló antes del pase de prueba, 
 | `evaluation/dryrun-artifacts/…` | `results/evaluation/fragments/…` y `results/evaluation/*.json` |
 | `docs/reports/…`, `docs/planning/…`, `protocol-v1.0.md` | Documentos del informe de tesis; no se incluyen en este repositorio |
 
+## Licencia
+
+El material propio se distribuye bajo Apache-2.0 para código independiente y pesos, y CC BY 4.0 para datos, resultados y documentación. La integración directa de EcoMug se distribuye bajo GPL-3.0-or-later; los componentes ajenos conservan sus licencias. El alcance y las exclusiones se especifican en [licencias](LICENSE.md) y [avisos de terceros](THIRD_PARTY_NOTICES.md). El acceso a los archivos de Drive y su verificación de integridad son cuestiones distintas de la licencia.
+
 ## Cita
 
 Cárdenas Tirado, R., & Pinto Ortega, D. A. (2026). *Reconstrucción muográfica por transmisión asistida por aprendizaje profundo mediante mejora predictiva de imágenes de baja estadística para exploración volcánica* [Trabajo de grado, Universidad Industrial de Santander, Escuela de Ingeniería de Sistemas e Informática].
